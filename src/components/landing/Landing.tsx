@@ -725,6 +725,55 @@ function SecHead({ tag, title, sub, center = false }: { tag: string; title: stri
   );
 }
 
+/** Cita fija: dos líneas gigantes se cruzan en sentidos opuestos y dejan paso a un
+    segundo panel (inspirado en la cita sobre video de counseling). */
+function QuotePin() {
+  const { t } = useI18n();
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const q = useSpring(scrollYProgress, { stiffness: 140, damping: 30, mass: 0.4 });
+  const aX = useTransform(q, [0, 0.55], ["18vw", "-22vw"]);
+  const bX = useTransform(q, [0, 0.55], ["-18vw", "22vw"]);
+  const oneO = useTransform(q, [0, 0.46, 0.56], [1, 1, 0]);
+  const oneF = useTransform(q, [0.46, 0.56], ["blur(0px)", "blur(10px)"]);
+  const subO = useTransform(q, [0.08, 0.24], [0, 1]);
+  const twoO = useTransform(q, [0.56, 0.68], [0, 1]);
+  const twoY = useTransform(q, [0.56, 0.72], [70, 0]);
+  const twoS = useTransform(q, [0.56, 0.72], [0.94, 1]);
+  const symR = useTransform(q, [0, 1], [-40, 80]);
+  const symS = useTransform(q, [0, 1], [0.75, 1.25]);
+  const glowX = useTransform(q, [0, 1], ["-20%", "20%"]);
+  return (
+    <section className="quote-pin" ref={ref}>
+      <div className="quote-sticky">
+        <motion.div className="quote-glow" style={{ x: glowX }} aria-hidden />
+        <motion.div className="quote-sym" style={{ rotate: symR, scale: symS }} aria-hidden>
+          <SeyfSymbol size={640} alt="" />
+        </motion.div>
+        <motion.div className="quote-one" style={{ opacity: oneO, filter: oneF }}>
+          <motion.p className="quote-line quote-a display" style={{ x: aX }}>{t.quote.a}</motion.p>
+          <motion.p className="quote-line quote-b display" style={{ x: bX }}>{t.quote.b}</motion.p>
+          <motion.p className="quote-sub" style={{ opacity: subO }}>{t.quote.sub}</motion.p>
+        </motion.div>
+        <motion.div className="quote-two wrap" style={{ opacity: twoO, y: twoY, scale: twoS }}>
+          <p className="quote-pre">{t.quote.pre}</p>
+          <p className="quote-big display">
+            {t.quote.big[0]} <span>+</span> {t.quote.big[1]}
+          </p>
+          <ul>
+            {t.quote.checks.map((c) => (
+              <li key={c}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" aria-hidden><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+                {c}
+              </li>
+            ))}
+          </ul>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 /* ---------- actividad del adelanto en mainnet ----------
    Cifras de /api/advance/activity, leídas del contrato seyf_advance. No es
    TVL: el vault es de un tercero. Sin datos, la sección no se muestra. */
@@ -1016,6 +1065,8 @@ function LandingInner() {
             </div>
           </div>
         </section>
+
+        <QuotePin />
 
         <LiveActivity />
 
