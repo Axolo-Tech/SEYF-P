@@ -120,47 +120,13 @@ export default function Symbol3D({
     rig.add(symbol);
     scene.add(rig);
 
-    // partículas: el "dinero" que flota alrededor
-    const N = lite ? 240 : 420;
-    const pGeo = new THREE.BufferGeometry();
-    const pPos = new Float32Array(N * 3);
-    const pCol = new Float32Array(N * 3);
-    const cL = new THREE.Color(LIME);
-    const cV = new THREE.Color(VIOLET);
-    // pseudo-aleatorio determinista (mismo cielo en cada carga)
-    let seed = 7;
-    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-    for (let i = 0; i < N; i++) {
-      const r = 1.6 + rnd() * 2.6;
-      const th = rnd() * Math.PI * 2;
-      const ph = Math.acos(2 * rnd() - 1);
-      pPos[i * 3] = r * Math.sin(ph) * Math.cos(th);
-      pPos[i * 3 + 1] = r * Math.cos(ph) * 0.7;
-      pPos[i * 3 + 2] = r * Math.sin(ph) * Math.sin(th);
-      const c = rnd() > 0.45 ? cL : cV;
-      pCol.set([c.r, c.g, c.b], i * 3);
-    }
-    pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
-    pGeo.setAttribute("color", new THREE.BufferAttribute(pCol, 3));
-    const pMat = new THREE.PointsMaterial({
-      size: 0.028,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.85,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      sizeAttenuation: true,
-    });
-    const points = new THREE.Points(pGeo, pMat);
-    rig.add(points);
-
     const resize = () => {
       const w = host.clientWidth || 1;
       const h = host.clientHeight || 1;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       // en pantallas angostas (verticales) alejamos la cámara para que el símbolo
-      // (~3.2 u de ancho con partículas cerca) quepa a lo ancho y no se corte
+      // (~3.2 u de ancho) quepa a lo ancho y no se corte
       const fitWidth = 1.7 / (Math.tan(((camera.fov / 2) * Math.PI) / 180) * camera.aspect);
       camera.position.z = Math.max(10.9, fitWidth) / scale;
       camera.updateProjectionMatrix();
@@ -200,7 +166,6 @@ export default function Symbol3D({
       rig.rotation.z = -p * Math.PI;
       rig.rotation.y = Math.sin(p * Math.PI * 2) * 0.32 + mouse.x * 0.25;
       rig.rotation.x = mouse.y * 0.16;
-      points.rotation.y = t * 0.03 + p * 1.2;
       renderer.render(scene, camera);
     };
 
@@ -225,7 +190,7 @@ export default function Symbol3D({
     function dispose() {
       cancelAnimationFrame(raf);
       scene.traverse((o) => {
-        if (o instanceof THREE.Mesh || o instanceof THREE.Points) {
+        if (o instanceof THREE.Mesh) {
           o.geometry.dispose();
           (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => m.dispose());
         }
