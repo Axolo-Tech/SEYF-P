@@ -952,6 +952,38 @@ function LandingInner() {
     };
   }, []);
 
+  // tarjetas de aliados: se inclinan hacia el cursor y un brillo lo sigue (inspirado en Iyali)
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    let tilted: HTMLElement | null = null;
+    const reset = () => {
+      if (!tilted) return;
+      tilted.classList.remove("tilting");
+      tilted.style.transform = "";
+      tilted = null;
+    };
+    const onMove = (e: PointerEvent) => {
+      const c = (e.target as Element | null)?.closest?.<HTMLElement>(".ally") ?? null;
+      if (tilted && tilted !== c) reset();
+      if (!c) return;
+      const r = c.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      c.classList.add("tilting");
+      tilted = c;
+      c.style.setProperty("--mx", `${((px + 0.5) * 100).toFixed(1)}%`);
+      c.style.setProperty("--my", `${((py + 0.5) * 100).toFixed(1)}%`);
+      c.style.transform = `perspective(900px) rotateY(${(px * 9).toFixed(2)}deg) rotateX(${(-py * 9).toFixed(2)}deg) translateY(-6px)`;
+    };
+    document.addEventListener("pointermove", onMove, { passive: true });
+    document.addEventListener("pointerleave", reset);
+    return () => {
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerleave", reset);
+    };
+  }, []);
+
   // nav: ocultar al bajar, mostrar al subir
   useEffect(() => {
     let lastY = window.scrollY;

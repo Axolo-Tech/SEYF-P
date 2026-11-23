@@ -497,6 +497,11 @@ html.lenis, html.lenis body { height: auto; }
   background: radial-gradient(closest-side, color-mix(in srgb, var(--c) 22%, transparent), transparent); opacity: 0; transition: opacity .5s; }
 .lp .ally:hover { transform: translateY(-6px); border-color: color-mix(in srgb, var(--c) 45%, transparent); box-shadow: 0 30px 60px -30px color-mix(in srgb, var(--c) 50%, transparent); }
 .lp .ally:hover::before { opacity: 1; }
+/* inclinación con el cursor: transición corta para que siga al mouse sin retraso; brillo en --mx/--my */
+.lp .ally.tilting { transition: transform .12s linear, border-color .4s, box-shadow .5s; }
+.lp .ally::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .4s;
+  background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.09), transparent 60%); }
+.lp .ally.tilting::after { opacity: 1; }
 .lp .ally-logo { position: relative; display: flex; align-items: center; height: 40px; }
 .lp .ally-logo img { width: auto; max-width: 100%; opacity: .9; transition: opacity .3s, transform .5s var(--ease); }
 .lp .ally:hover .ally-logo img { opacity: 1; transform: scale(1.04); }
