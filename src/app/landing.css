@@ -550,8 +550,10 @@ html.lenis, html.lenis body { height: auto; }
 .lp .foot-col h5 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); margin: 0 0 16px; }
 .lp .foot-col a { display: block; font-size: 14.5px; color: var(--muted); margin-bottom: 11px; transition: color .15s; }
 .lp .foot-col a:hover { color: var(--txt); }
-.lp .foot-giant { font-size: clamp(110px, 26vw, 380px); line-height: .8; text-align: center; margin: 60px 0 0; letter-spacing: -0.06em;
-  background: linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,0) 85%); -webkit-background-clip: text; background-clip: text; color: transparent; user-select: none; }
+.lp .foot-giant { display: flex; justify-content: center; overflow: hidden; font-size: clamp(110px, 26vw, 380px); line-height: .8; margin: 60px 0 0; padding-bottom: .04em; letter-spacing: -0.06em; user-select: none; }
+/* el degradado va en cada letra: con transform propio, el background-clip del padre no las alcanzaría */
+.lp .foot-giant span { display: inline-block; transform-origin: 50% 100%; will-change: transform;
+  background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0) 85%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .lp .foot-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 26px; border-top: 1px solid var(--line); font-size: 13px; color: var(--dim); flex-wrap: wrap; gap: 14px; }
 
 /* ---------- responsive ---------- */

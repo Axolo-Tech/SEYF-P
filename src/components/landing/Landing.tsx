@@ -774,6 +774,27 @@ function QuotePin() {
   );
 }
 
+/** "SEYF" gigante del footer: cada letra sube, escalonada, conforme el footer llega a pantalla. */
+function FootLetter({ c, i, progress }: { c: string; i: number; progress: MotionValue<number> }) {
+  const from = i * 0.12;
+  const y = useTransform(progress, [from, from + 0.55], ["70%", "0%"]);
+  const rotate = useTransform(progress, [from, from + 0.55], [8, 0]);
+  const opacity = useTransform(progress, [from, from + 0.4], [0, 1]);
+  return <motion.span style={{ y, rotate, opacity }}>{c}</motion.span>;
+}
+
+function FootGiant() {
+  const ref = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end end"] });
+  const p = useSpring(scrollYProgress, { stiffness: 120, damping: 28 });
+  return (
+    <div ref={ref} className="foot-giant display" aria-hidden>
+      {"SEYF".split("").map((c, i) => (reduced ? <span key={i}>{c}</span> : <FootLetter key={i} c={c} i={i} progress={p} />))}
+    </div>
+  );
+}
+
 /* ---------- actividad del adelanto en mainnet ----------
    Cifras de /api/advance/activity, leídas del contrato seyf_advance. No es
    TVL: el vault es de un tercero. Sin datos, la sección no se muestra. */
@@ -1159,7 +1180,7 @@ function LandingInner() {
                 <a href="mailto:inversionistas@seyf.app">{t.footer.investorContact}</a>
               </div>
             </div>
-            <div className="foot-giant display" aria-hidden>SEYF</div>
+            <FootGiant />
             <div className="foot-bottom">
               <span>{t.footer.rights}</span>
               <span>{t.footer.made}</span>
