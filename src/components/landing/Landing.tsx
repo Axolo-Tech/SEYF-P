@@ -12,11 +12,14 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
+  useAnimationFrame,
+  useMotionValue,
   useMotionValueEvent,
   useReducedMotion,
   useScroll,
   useSpring,
   useTransform,
+  useVelocity,
   type MotionValue,
 } from "motion/react";
 import Lenis from "lenis";
@@ -241,6 +244,39 @@ function Manifesto() {
         </div>
       </div>
     </section>
+  );
+}
+
+/** Marquee que corre solo y acelera con la velocidad del scroll; al subir, cambia
+    de sentido (inspirado en el arco de Iyali). Los hijos van duplicados para el bucle. */
+const wrapPct = (v: number) => ((((v + 50) % 50) + 50) % 50) - 50; // mantiene x en [-50%, 0)
+function VelocityMarquee({ children }: { children: React.ReactNode }) {
+  const reduced = useReducedMotion();
+  const baseX = useMotionValue(0);
+  const { scrollY } = useScroll();
+  const velocity = useSpring(useVelocity(scrollY), { damping: 50, stiffness: 400 });
+  const boost = useTransform(velocity, [-1800, 0, 1800], [-5, 0, 5], { clamp: false });
+  const skewX = useTransform(velocity, [-2400, 0, 2400], [5, 0, -5]);
+  const dir = useRef(1);
+  const paused = useRef(false);
+  useAnimationFrame((_, delta) => {
+    if (reduced || paused.current) return;
+    const b = boost.get();
+    if (b < 0) dir.current = -1;
+    else if (b > 0) dir.current = 1;
+    // base: 50% del track (una copia) en ~36 s, como el loop CSS anterior
+    let move = dir.current * 1.4 * (Math.min(delta, 64) / 1000);
+    move += move * Math.abs(b);
+    baseX.set(wrapPct(baseX.get() - move));
+  });
+  const x = useTransform(baseX, (v) => `${v}%`);
+  return (
+    <div className="marquee" onPointerEnter={() => (paused.current = true)} onPointerLeave={() => (paused.current = false)}>
+      <motion.div className="marquee-track" style={{ x, skewX: reduced ? 0 : skewX }}>
+        {children}
+        {children}
+      </motion.div>
+    </div>
   );
 }
 
@@ -921,23 +957,17 @@ function LandingInner() {
       <main>
         <HeroCinema />
 
-        {/* MARQUEE */}
-        <div className="marquee">
-          <div className="marquee-track">
-            {[0, 1].map((dup) => (
-              <React.Fragment key={dup}>
-                <span className="it"><span className="flag"><FlagMX /></span> {t.bonds.countries.mx} · Bonos M 10.25%</span>
-                <span className="it"><span className="flag"><FlagUS /></span> {t.bonds.short.us} · Treasury 4.45%</span>
-                <span className="it"><span className="flag"><FlagBR /></span> {t.bonds.countries.br} · Tesouro Selic 11.75%</span>
-                <span className="it"><span className="flag"><FlagAR /></span> {t.bonds.countries.ar} · Lecap 14.50%</span>
-                <span className="it"><span className="flag"><FlagCO /></span> {t.bonds.countries.co} · TES 9.60%</span>
-                <span className="it"><span className="flag"><FlagEU /></span> {t.bonds.countries.eu} · Bonos UE 3.40%</span>
-                <span className="it"><span className="flag"><FlagKR /></span> {t.bonds.short.kr} · KTB 3.35%</span>
-                <span className="it" style={{ color: "var(--accent)" }}>{t.marqueeFx}</span>
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
+        {/* MARQUEE — acelera con el scroll */}
+        <VelocityMarquee>
+          <span className="it"><span className="flag"><FlagMX /></span> {t.bonds.countries.mx} · Bonos M 10.25%</span>
+          <span className="it"><span className="flag"><FlagUS /></span> {t.bonds.short.us} · Treasury 4.45%</span>
+          <span className="it"><span className="flag"><FlagBR /></span> {t.bonds.countries.br} · Tesouro Selic 11.75%</span>
+          <span className="it"><span className="flag"><FlagAR /></span> {t.bonds.countries.ar} · Lecap 14.50%</span>
+          <span className="it"><span className="flag"><FlagCO /></span> {t.bonds.countries.co} · TES 9.60%</span>
+          <span className="it"><span className="flag"><FlagEU /></span> {t.bonds.countries.eu} · Bonos UE 3.40%</span>
+          <span className="it"><span className="flag"><FlagKR /></span> {t.bonds.short.kr} · KTB 3.35%</span>
+          <span className="it" style={{ color: "var(--accent)" }}>{t.marqueeFx}</span>
+        </VelocityMarquee>
 
         <Manifesto />
 

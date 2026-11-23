@@ -507,11 +507,10 @@ html.lenis, html.lenis body { height: auto; }
 
 /* ---------- marquee ---------- */
 .lp .marquee { overflow: hidden; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 20px 0; background: rgba(8,8,13,.6); -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
-.lp .marquee-track { display: flex; gap: 50px; width: max-content; animation: scrollx 36s linear infinite; }
-.lp .marquee:hover .marquee-track { animation-play-state: paused; }
+/* el avance lo mueve JS (VelocityMarquee); el padding iguala el hueco del bucle para que -50% empalme exacto */
+.lp .marquee-track { display: flex; gap: 50px; padding-right: 50px; width: max-content; will-change: transform; }
 .lp .marquee-track .it { display: flex; align-items: center; gap: 11px; font-size: 17px; font-weight: 700; color: var(--muted); white-space: nowrap; }
 .lp .marquee-track .it .flag { width: 26px; height: 26px; border-radius: 50%; overflow: hidden; border: 1px solid var(--line-2); }
-@keyframes scrollx { to { transform: translateX(-50%); } }
 
 /* ---------- footer ---------- */
 .lp footer { border-top: 1px solid var(--line); margin-top: 80px; padding: 64px 0 40px; position: relative; z-index: 1; overflow: hidden; }
@@ -612,7 +611,7 @@ html.lenis, html.lenis body { height: auto; }
 }
 @media (prefers-reduced-motion: reduce) {
   .lp .atmos .glow, .lp .atmos .grain { animation: none; }
-  .lp .relief, .lp .relief-pulse, .lp .marquee-track, .lp .live-dot, .lp .scroll-hint i::after, .lp .am-pulse .ic { animation: none !important; }
+  .lp .relief, .lp .relief-pulse, .lp .live-dot, .lp .scroll-hint i::after, .lp .am-pulse .ic { animation: none !important; }
   .lp .phone-tilt { transition: none; transform: none !important; }
   .lp .btn-primary::before { display: none; }
 }
