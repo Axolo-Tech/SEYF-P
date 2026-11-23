@@ -228,10 +228,10 @@ html.lenis, html.lenis body { height: auto; }
 .lp .mf-float-b { bottom: 8%; left: 4%; opacity: .4; }
 .lp .mf-float-b img { width: clamp(44px, 5.5vw, 72px); }
 .lp .mf-orb { position: absolute; z-index: 0; border-radius: 50%; pointer-events: none; will-change: transform; }
-.lp .mf-orb-a { width: clamp(120px, 16vw, 240px); aspect-ratio: 1; left: -3%; top: 6%; opacity: .5;
-  background: radial-gradient(circle at 32% 28%, #f3ffd6 0%, var(--accent) 34%, #6f9a12 78%, transparent 100%); filter: blur(2px); }
-.lp .mf-orb-b { width: clamp(80px, 10vw, 150px); aspect-ratio: 1; right: 14%; bottom: 4%; opacity: .55;
-  background: radial-gradient(circle at 30% 28%, #ece4ff 0%, #a98bff 32%, var(--accent-2, #8B5CF6) 72%, transparent 100%); filter: blur(1px); }
+.lp .mf-orb-a { width: clamp(120px, 16vw, 240px); aspect-ratio: 1; left: -3%; top: 16%; opacity: .3;
+  background: radial-gradient(circle at 32% 28%, #f3ffd6 0%, var(--accent) 34%, #6f9a12 78%, transparent 100%); filter: blur(6px); }
+.lp .mf-orb-b { width: clamp(80px, 10vw, 150px); aspect-ratio: 1; right: 14%; bottom: 24%; opacity: .4;
+  background: radial-gradient(circle at 30% 28%, #ece4ff 0%, #a98bff 32%, var(--accent-2, #8B5CF6) 72%, transparent 100%); filter: blur(4px); }
 
 /* ---------- historia con celular fijo ---------- */
 .lp .story { height: 480vh; }

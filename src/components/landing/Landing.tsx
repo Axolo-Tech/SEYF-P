@@ -224,8 +224,8 @@ function Manifesto() {
   const aR = useTransform(pass, [0, 1], [-18, 32]);
   const bY = useTransform(pass, [0, 1], [-90, 120]);
   const bR = useTransform(pass, [0, 1], [24, -40]);
-  const oY = useTransform(pass, [0, 1], [180, -220]);
-  const pY = useTransform(pass, [0, 1], [-120, 160]);
+  const oY = useTransform(pass, [0, 1], [110, -130]);
+  const pY = useTransform(pass, [0, 1], [-90, 90]);
   const words = t.manifesto.split(" ");
   return (
     <section className="manifesto sec-pad" ref={secRef}>
