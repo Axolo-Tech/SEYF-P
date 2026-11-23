@@ -200,22 +200,36 @@ function Intro() {
   );
 }
 
-/** Palabra del manifiesto: se ilumina según el avance del scroll. */
+/** Palabra del manifiesto: pasa de tenue y desenfocada a nítida según el avance del scroll. */
 function Word({ children, progress, range }: { children: string; progress: MotionValue<number>; range: [number, number] }) {
   const opacity = useTransform(progress, range, [0.14, 1]);
   const y = useTransform(progress, range, [6, 0]);
+  const filter = useTransform(progress, range, ["blur(6px)", "blur(0px)"]);
   return (
-    <motion.span style={{ opacity, y, display: "inline-block", marginRight: "0.26em" }}>{children}</motion.span>
+    <motion.span style={{ opacity, y, filter, display: "inline-block", marginRight: "0.26em" }}>{children}</motion.span>
   );
 }
 
 function Manifesto() {
   const ref = useRef<HTMLDivElement>(null);
+  const secRef = useRef<HTMLElement>(null);
   const { t } = useI18n();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.85", "end 0.45"] });
+  // piezas que flotan con parallax: cruzan la sección en sentidos opuestos mientras se baja
+  const { scrollYProgress: pass } = useScroll({ target: secRef, offset: ["start end", "end start"] });
+  const aY = useTransform(pass, [0, 1], [140, -160]);
+  const aR = useTransform(pass, [0, 1], [-18, 32]);
+  const bY = useTransform(pass, [0, 1], [-90, 120]);
+  const bR = useTransform(pass, [0, 1], [24, -40]);
+  const oY = useTransform(pass, [0, 1], [180, -220]);
+  const pY = useTransform(pass, [0, 1], [-120, 160]);
   const words = t.manifesto.split(" ");
   return (
-    <section className="manifesto sec-pad">
+    <section className="manifesto sec-pad" ref={secRef}>
+      <motion.span className="mf-orb mf-orb-a" style={{ y: oY }} aria-hidden />
+      <motion.span className="mf-orb mf-orb-b" style={{ y: pY }} aria-hidden />
+      <motion.span className="mf-float mf-float-a" style={{ y: aY, rotate: aR }} aria-hidden><SeyfSymbol size={120} alt="" /></motion.span>
+      <motion.span className="mf-float mf-float-b" style={{ y: bY, rotate: bR }} aria-hidden><SeyfSymbol size={72} alt="" /></motion.span>
       <div className="wrap">
         <span className="sec-tag">{t.manifestoTag}</span>
         <div ref={ref} className="manifesto-text display">
