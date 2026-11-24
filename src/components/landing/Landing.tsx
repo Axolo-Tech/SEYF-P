@@ -392,7 +392,7 @@ function HeroCinema() {
             <div className="float-card">
               <div className="k"><span className="live-dot" /> {t.hero.earnedToday}</div>
               {/* ilustrativo: solo anima el contador, no promete una tasa */}
-              <div className="v"><GrowingAmount base={12.4} apy={9} size={30} align="left" color="var(--accent)" prefix="+$" tail={2} id="lp-ganado" /></div>
+              <div className="v"><GrowingAmount base={12.4} apy={9} size={30} align="left" color="#3F7A00" prefix="+$" tail={2} id="lp-ganado" /></div>
             </div>
             <div className="float-card">
               <div className="k">{t.hero.withdrawK}</div>
@@ -849,7 +849,7 @@ function LiveActivity() {
 
 // el rol de cada aliado está en t.partners.roles (mismo orden)
 const PARTNERS = [
-  { name: "Stellar", logo: "/partners/stellar.svg", h: 30, url: "https://stellar.org", color: "#ffffff" },
+  { name: "Stellar", logo: "/partners/stellar.svg", h: 30, url: "https://stellar.org", color: "#8B5CF6" },
   { name: "DeFindex", logo: "/partners/defindex.svg", h: 30, url: "https://defindex.io", color: "#DEC9F4" },
   { name: "Pollar", logo: "/partners/pollar.png", h: 22, url: "https://pollar.xyz", color: "#6c8cff" },
   { name: "Etherfuse", logo: "/partners/etherfuse.svg", h: 24, url: "https://www.etherfuse.com", color: "#C8FF4D" },
@@ -1068,7 +1068,7 @@ function LandingInner() {
           <span className="it"><span className="flag"><FlagCO /></span> {t.bonds.countries.co} · TES 9.60%</span>
           <span className="it"><span className="flag"><FlagEU /></span> {t.bonds.countries.eu} · Bonos UE 3.40%</span>
           <span className="it"><span className="flag"><FlagKR /></span> {t.bonds.short.kr} · KTB 3.35%</span>
-          <span className="it" style={{ color: "var(--accent)" }}>{t.marqueeFx}</span>
+          <span className="it" style={{ color: "var(--accent-ink)" }}>{t.marqueeFx}</span>
         </VelocityMarquee>
 
         <Manifesto />
