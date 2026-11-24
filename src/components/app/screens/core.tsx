@@ -7,14 +7,12 @@ import { TopBar, SubHeader, TxnRow, PendingTxnRow, ConvTxnRow } from "../shared"
 import { TXNS, FMT, txnDecimals, type Txn } from "../data";
 import type { Go } from "../nav";
 import { useWallet } from "@/components/wallet/WalletContext";
-import { useOnchainTxns } from "@/hooks/useOnchain";
 import { usePendingTxns } from "@/hooks/usePendingTxns";
 import { useConversions, type Conversion } from "@/hooks/useConversions";
 import { useAssetPricesMxn } from "@/hooks/useAssetPricesMxn";
 import { useStellarTxns, type StellarOperation } from "@/hooks/useStellarTxns";
 import { useVaultsRail } from "@/hooks/useVaultsRail";
 import { useKycStatus } from "@/hooks/useKycStatus";
-import type { OnchainTransfer } from "@/lib/chain";
 import { DepositModal } from "../modals/DepositModal";
 import { SendModal } from "../modals/SendModal";
 import { MoreSheet } from "../modals/MoreSheet";
@@ -27,7 +25,6 @@ import { ProjectionCard } from "../ProjectionCard";
 import { GrowingAmount } from "../GrowingAmount";
 import { IntroScreen } from "../IntroScreen";
 import "../onboarding.css";
-import { SEYF_VAULTS_ADDRESS, SEYF_ADVANCE_ADDRESS } from "@/lib/chain";
 import { useSeyfStellarWallet } from "@/lib/seyf/use-seyf-stellar-wallet";
 import { stellarTxExplorerUrl as stellarExplorerTxUrl } from "@/lib/etherfuse/stellar-tx-url";
 import { STELLAR_VAULTS_ENABLED, assetSymbolForPlan } from "@/lib/defindex/vaults";
@@ -88,8 +85,6 @@ export function ScreenHome({ go }: { go: Go }) {
   const [modal, setModal] = useState<null | "deposit" | "send" | "more">(null);
   const wallet = useWallet();
   const stellar = useSeyfStellarWallet();
-  // Movimientos EVM (MXNB en Arbitrum) ya no aplican: SEYF es full Stellar.
-  const homeTxns = useOnchainTxns(undefined);
   const stellarTxns = useStellarTxns(stellar.publicKey ?? undefined);
   const pend = usePendingTxns(wallet.address);
   const conv = useConversions(wallet.address);
@@ -109,10 +104,10 @@ export function ScreenHome({ go }: { go: Go }) {
     return weightedApy;
   })();
 
-  // Retira pendientes ya confirmados on-chain.
+  // Retira pendientes ya confirmados en Stellar (o expirados).
   useEffect(() => {
-    pend.reconcile(homeTxns.txns);
-  }, [homeTxns.txns, pend.reconcile]);
+    pend.reconcile(opsForReconcile(stellarTxns.ops));
+  }, [stellarTxns.ops, pend.reconcile]);
 
   const realData = wallet.enabled && wallet.authenticated;
 
@@ -304,8 +299,8 @@ export function ScreenHome({ go }: { go: Go }) {
           </div>
           <div style={{ marginTop: 6 }}>
           {realData ? (
-            pend.pending.length === 0 && conv.conversions.length === 0 && homeTxns.txns.length === 0 && stellarTxns.ops.length === 0 ? (
-              (homeTxns.loading || stellarTxns.loading) ? (
+            pend.pending.length === 0 && conv.conversions.length === 0 && stellarTxns.ops.length === 0 ? (
+              stellarTxns.loading ? (
                 <div style={{ display: "flex", justifyContent: "center", padding: "18px 0" }}>
                   <span className="spin" style={{ color: "var(--accent)" }} />
                 </div>
@@ -320,7 +315,7 @@ export function ScreenHome({ go }: { go: Go }) {
             ) : (
               <div className="list">
                 {pend.pending.map((p) => <PendingTxnRow key={p.id} p={p} />)}
-                {mergeRecent(conv.conversions.filter((c) => !pend.pending.some((p) => p.ref === c.id)), homeTxns.txns, stellarTxns.ops, go, 3)}
+                {mergeRecent(conv.conversions.filter((c) => !pend.pending.some((p) => p.ref === c.id)), stellarTxns.ops, go, 3)}
               </div>
             )
           ) : (
@@ -338,28 +333,30 @@ export function ScreenHome({ go }: { go: Go }) {
       <div className="scroll-bottom" />
 
       {modal === "deposit" && <Portal><DepositModal onClose={() => setModal(null)} onGoSavings={() => go("bovedas")} onSuccess={() => { refreshBal(); void stellarTxns.refresh(); if (stellar.authenticated) void stellar.refreshBalanceAfterTx(); }} /></Portal>}
-      {modal === "send" && <Portal><SendModal onClose={() => setModal(null)} onSuccess={() => { refreshBal(); homeTxns.refresh(); void stellarTxns.refresh(); if (stellar.authenticated) void stellar.refreshBalanceAfterTx(); }} maxAmount={realData ? wallet.balance : undefined} /></Portal>}
+      {modal === "send" && <Portal><SendModal onClose={() => setModal(null)} onSuccess={() => { refreshBal(); void stellarTxns.refresh(); if (stellar.authenticated) void stellar.refreshBalanceAfterTx(); }} maxAmount={realData ? wallet.balance : undefined} /></Portal>}
       {modal === "more" && <Portal><MoreSheet onClose={() => setModal(null)} /></Portal>}
     </div>
   );
 }
 
-/* Fusiona conversiones (Bitso) + transferencias on-chain (Arbitrum + Stellar)
-   en una lista ordenada por fecha (más reciente primero). */
+/* Operaciones Stellar en la forma que compara `usePendingTxns.reconcile`
+   (dirección, monto y hora). Las de la propia cuenta ("self") no aplican. */
+function opsForReconcile(ops: StellarOperation[]) {
+  return ops.flatMap((op) =>
+    op.direction === "self" ? [] : [{ direction: op.direction, value: op.amount, timestamp: op.createdAt }],
+  );
+}
+
+/* Fusiona conversiones guardadas + operaciones de la cuenta Stellar en una
+   lista ordenada por fecha (más reciente primero). */
 function mergeRecent(
   conversions: Conversion[],
-  onchain: OnchainTransfer[],
   stellarOps: StellarOperation[],
   go?: Go,
   limit?: number,
 ) {
   const rows: { key: string; ts: number; node: React.ReactNode }[] = [
     ...conversions.map((c) => ({ key: c.id, ts: c.createdAt, node: <ConvTxnRow key={c.id} c={c} /> })),
-    ...onchain.map((t, i) => ({
-      key: `oc_${i}`,
-      ts: t.timestamp || 0,
-      node: <TxnRow key={`oc_${i}`} t={onchainToRow(t, i)} go={go} />,
-    })),
     ...stellarOps.map((op) => ({
       key: `st_${op.id}`,
       ts: op.createdAt,
@@ -370,47 +367,7 @@ function mergeRecent(
   return (limit != null ? rows.slice(0, limit) : rows).map((r) => r.node);
 }
 
-/* ---------------- WALLET (pesos digitales · MXNB on-chain) ---------------- */
-/* Clasifica una transferencia MXNB por su contraparte: abono/retiro de bóveda
-   (contrato SeyfVaults), adelanto (contrato SeyfAdvance) o envío/recepción
-   simple. Cada tipo lleva su propio icono + color (tint). */
-function onchainToRow(t: OnchainTransfer, i: number): Txn {
-  const pos = t.direction === "in";
-  const to = (t.to || "").toLowerCase();
-  const from = (t.from || "").toLowerCase();
-  const vaults = (SEYF_VAULTS_ADDRESS || "").toLowerCase();
-  const advance = (SEYF_ADVANCE_ADDRESS || "").toLowerCase();
-
-  let nm: string, ic: string, tint: Txn["tint"];
-  if (advance && (to === advance || from === advance)) {
-    nm = "Adelanto de liquidez"; ic = "bolt"; tint = "advance";
-  } else if (vaults && to === vaults) {
-    nm = "Abono a bóveda"; ic = "vault"; tint = "vault";
-  } else if (vaults && from === vaults) {
-    nm = "Retiro de bóveda"; ic = "vault"; tint = "vault";
-  } else if (pos) {
-    nm = "Dinero recibido"; ic = "in"; tint = "pos";
-  } else {
-    nm = "Dinero enviado"; ic = "send"; tint = "neutral";
-  }
-
-  return {
-    id: i + 1,
-    nm,
-    su: t.timestamp
-      ? new Date(t.timestamp).toLocaleString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })
-      : "Confirmando…",
-    amt: pos ? t.value : -t.value,
-    ic,
-    pos,
-    tint,
-    hash: t.hash,
-    fromAddr: t.from,
-    toAddr: t.to,
-    blockNumber: t.blockNumber.toString(),
-  };
-}
-
+/* ---------------- WALLET (saldo líquido en USDC · historial Stellar) ---------------- */
 /* Operaciones del vault y del adelanto. El adelanto bloquea las acciones del
    vault; pagarlo o liquidarlo con el rendimiento las desbloquea. */
 const CONTRACT_ROWS: Partial<Record<StellarOperation["type"], { nm: string; ic: string; tint: Txn["tint"]; sub?: string }>> = {
@@ -479,42 +436,67 @@ function stellarOpToRow(op: StellarOperation): Txn {
 export function ScreenWallet({ go }: { go: Go }) {
   const wallet = useWallet();
   const stellar = useSeyfStellarWallet();
-  const { txns: onchainTxns, loading: loadingTxns, refresh: refreshTxns } = useOnchainTxns(wallet.address);
   const stellarTxns = useStellarTxns(stellar.publicKey ?? undefined);
   const pend = usePendingTxns(wallet.address);
   const conv = useConversions(wallet.address);
   const [modal, setModal] = useState<null | "deposit" | "send">(null);
 
   useEffect(() => {
-    pend.reconcile(onchainTxns);
-  }, [onchainTxns, pend.reconcile]);
+    pend.reconcile(opsForReconcile(stellarTxns.ops));
+  }, [stellarTxns.ops, pend.reconcile]);
 
   const realMode = wallet.enabled && wallet.authenticated;
-  // Con sesión: saldo real on-chain (aunque sea $0). Sin sesión: saldo demo.
-  const loadingBal = wallet.balanceLoading;
-  const shown = realMode ? wallet.balance : 48250.4;
+  // `wallet.balance` es el USDC líquido de la cuenta Stellar (PollarBridge), en su
+  // unidad nativa. Hasta que Horizon responde no hay saldo: se muestra un esqueleto
+  // en lugar de un 0 que parecería real.
+  const usdc = wallet.balance;
+  const loadingBal = realMode && !stellar.balancesLoaded;
+  // Equivalencia en MXN solo si hay cotización: sin precio, `valueOf` devuelve 0 y
+  // no debe confundirse con un saldo en cero.
+  const { valueOf: mxnValueOf, hasPrice, loaded: priceLoaded } = useAssetPricesMxn(
+    realMode ? ["USDC"] : [],
+    stellar.publicKey,
+  );
+  const usdcMxn = hasPrice("USDC") ? mxnValueOf("USDC", usdc) : null;
   const refreshBal = wallet.refreshBalance;
 
-  const onSuccess = () => { void refreshBal(); void refreshTxns(); void stellarTxns.refresh(); };
+  const onSuccess = () => {
+    void refreshBal();
+    void stellarTxns.refresh();
+    if (stellar.authenticated) void stellar.refreshBalanceAfterTx();
+  };
 
   return (
     <div className="screen screen-enter">
       <div className="safe-top" />
-      <SubHeader title="Pesos digitales" go={go} back="home" />
+      <SubHeader title={realMode ? "Disponible" : "Pesos digitales"} go={go} back="home" />
 
       <div className="screen-pad">
         <div className="card glow" style={{ padding: 24, textAlign: "center" }}>
           <p className="eyebrow" style={{ textAlign: "center" }}>Saldo disponible</p>
           {loadingBal ? (
             <div className="skel" style={{ height: 48, width: 200, margin: "16px auto 0" }} />
+          ) : realMode ? (
+            <>
+              <p className="num" style={{ margin: "12px 0 0", fontSize: 44, fontWeight: 900, fontFamily: "var(--font-display)", lineHeight: 1 }}>
+                {FMT(usdc, 2)} <span style={{ fontSize: 18, color: "var(--txt-muted)" }}>USDC</span>
+              </p>
+              <p className="num" style={{ margin: "10px 0 0", fontSize: 15, color: "var(--txt-muted)" }}>
+                {usdcMxn != null
+                  ? `≈ $${FMT(usdcMxn, 2)} MXN`
+                  : priceLoaded
+                    ? "Sin cotización en MXN por ahora"
+                    : "Consultando cotización…"}
+              </p>
+            </>
           ) : (
             <div style={{ marginTop: 12 }}>
-              {/* Mismo componente y tamaño (56) que Inicio y Ahorro → unificado. */}
-              <GrowingAmount base={shown} apy={0} size={56} id="pesos-digitales" />
+              {/* Modo demo (sin sesión): saldo de muestra. */}
+              <GrowingAmount base={48250.4} apy={0} size={56} id="pesos-digitales" />
             </div>
           )}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 14 }}>
-            <span className="pos-pill"><Icon name="leaf" size={12} /> {realMode ? "Pesos digitales" : "+$12.40 hoy"}</span>
+            <span className="pos-pill"><Icon name="leaf" size={12} /> {realMode ? "Dólares digitales" : "+$12.40 hoy"}</span>
             <span style={{ fontSize: 13, color: "var(--txt-muted)" }}>{realMode ? "Disponible al instante" : "9% anual · pagado diario"}</span>
           </div>
         </div>
@@ -538,8 +520,8 @@ export function ScreenWallet({ go }: { go: Go }) {
 
         <div className="sec-head" style={{ marginTop: realMode ? 26 : undefined }}><h3>Movimientos</h3><span className="link" onClick={() => onSuccess()}>Actualizar</span></div>
         <div className="card" style={{ padding: "4px 18px" }}>
-          {realMode && pend.pending.length === 0 && conv.conversions.length === 0 && onchainTxns.length === 0 && stellarTxns.ops.length === 0 ? (
-            (loadingTxns || stellarTxns.loading) ? (
+          {realMode && pend.pending.length === 0 && conv.conversions.length === 0 && stellarTxns.ops.length === 0 ? (
+            stellarTxns.loading ? (
               <div style={{ display: "flex", justifyContent: "center", padding: "18px 0" }}><span className="spin" style={{ color: "var(--accent)" }} /></div>
             ) : (
               <p style={{ padding: "16px 4px", fontSize: 13, color: "var(--txt-muted)", textAlign: "center" }}>Aún no tienes movimientos.</p>
@@ -548,7 +530,7 @@ export function ScreenWallet({ go }: { go: Go }) {
             <div className="list">
               {realMode && pend.pending.map((p) => <PendingTxnRow key={p.id} p={p} />)}
               {realMode
-                ? mergeRecent(conv.conversions.filter((c) => !pend.pending.some((p) => p.ref === c.id)), onchainTxns, stellarTxns.ops, go)
+                ? mergeRecent(conv.conversions.filter((c) => !pend.pending.some((p) => p.ref === c.id)), stellarTxns.ops, go)
                 : TXNS.map((t) => <TxnRow key={t.id} t={t} go={go} />)}
             </div>
           )}
