@@ -342,11 +342,12 @@ function HeroCinema() {
   const b3y = useTransform(p, [0.66, 0.78], [60, 0]);
   // --k: 0 = centrado (detrás de "SEYF" y entre "Rinde" y "diario"), 1 = a la derecha en el beat 3
   const k = useTransform(p, [0, 0.6, 0.74], [0, 0, 1]);
-  // en el beat 2 el símbolo se encoge para caber entre "Rinde" y "diario"
-  const symScaleDesk = useTransform(p, [0.26, 0.38, 0.6, 0.74], [1, 0.58, 0.58, 0.8]);
+  // beat 1: el símbolo es más grande que "SEYF" y se asoma por todos lados (como póster);
+  // en el beat 2 se encoge para caber entre "Rinde" y "diario"
+  const symScaleDesk = useTransform(p, [0, 0.26, 0.38, 0.6, 0.74], [1.4, 1.4, 0.58, 0.58, 0.8]);
   // móvil: el canvas ajusta el símbolo al ancho, así que de entrada se achica para
   // caber entre la barra y el texto sin taparlos
-  const symScaleMob = useTransform(p, [0.26, 0.38, 0.6, 0.74], [0.66, 0.46, 0.46, 0.6]);
+  const symScaleMob = useTransform(p, [0, 0.26, 0.38, 0.6, 0.74], [0.95, 0.95, 0.46, 0.46, 0.6]);
   const mobile = useMediaQuery("(max-width: 880px)");
   const symScale = mobile ? symScaleMob : symScaleDesk;
   const hint = useTransform(p, [0, 0.06], [1, 0]);
@@ -379,7 +380,7 @@ function HeroCinema() {
         <motion.div className="hero-sym" style={{ "--k": k } as unknown as React.CSSProperties}>
           <motion.div className="hero-sym-inner" style={{ scale: symScale }}>
             <div className="hero-sym-glow" />
-            <Symbol3D progress={p} className="hero-canvas" />
+            <Symbol3D progress={p} className="hero-canvas" intro />
           </motion.div>
         </motion.div>
 

@@ -5,6 +5,8 @@
    tapas redondas y se entrelazan en z, igual que el SVG. Iluminación con
    RoomEnvironment (PMREM) para reflejos tipo render de estudio.
    `progress` (0→1, p.ej. scroll) controla giro/escala; el mouse agrega parallax.
+   Superficie con relieve suave (bump procedural, tipo espuma) y brillo perlado;
+   con `intro`, los arcos entran desde lados opuestos y se entrelazan al cargar.
    Solo pinta cuando está en pantalla; con reduce-motion renderiza un cuadro fijo. */
 import React, { useEffect, useRef } from "react";
 import type { MotionValue } from "motion/react";
@@ -24,6 +26,43 @@ const ARCS = [
 ];
 // Desplazamiento en z que hace que los arcos se "crucen" en lugar de atravesarse.
 const weave = (y: number, lift: number) => lift * 0.1 * Math.tanh(-y / 0.3);
+
+/** Relieve procedural: puntos suaves repetibles, para que la luz "rasque" la superficie. */
+function makeBumpTexture(size = 256) {
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  const g = c.getContext("2d")!;
+  g.fillStyle = "#808080";
+  g.fillRect(0, 0, size, size);
+  let seed = 11;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < 2600; i++) {
+    const x = rnd() * size;
+    const y = rnd() * size;
+    const r = 1 + rnd() * 3.2;
+    const v = rnd() > 0.5 ? 255 : 0;
+    const grd = g.createRadialGradient(x, y, 0, x, y, r);
+    grd.addColorStop(0, `rgba(${v},${v},${v},0.5)`);
+    grd.addColorStop(1, `rgba(${v},${v},${v},0)`);
+    g.fillStyle = grd;
+    // repite en los bordes para que el patrón empalme
+    for (const dx of [-size, 0, size]) for (const dy of [-size, 0, size]) {
+      g.beginPath();
+      g.arc(x + dx, y + dy, r, 0, Math.PI * 2);
+      g.fill();
+    }
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(14, 2);
+  return t;
+}
+
+const easeOutBack = (x: number) => {
+  const c1 = 1.5;
+  const c3 = c1 + 1;
+  return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+};
 
 function buildArc(a: (typeof ARCS)[number], mat: THREE.Material, lite = false) {
   const g = new THREE.Group();
@@ -52,12 +91,15 @@ export default function Symbol3D({
   style,
   scale = 1,
   spin = true,
+  intro = false,
 }: {
   progress?: MotionValue<number>;
   className?: string;
   style?: React.CSSProperties;
   scale?: number;
   spin?: boolean;
+  /** Ensamblado al montar: cada arco entra desde un lado y se entrelaza. */
+  intro?: boolean;
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
 
@@ -99,23 +141,33 @@ export default function Symbol3D({
     rimL.position.set(3, 2, -1);
     scene.add(rimL);
 
+    const bump = makeBumpTexture();
     const mats = ARCS.map(
       (a) =>
         new THREE.MeshPhysicalMaterial({
           color: a.color,
-          roughness: 0.22,
-          metalness: 0.15,
+          roughness: 0.32,
+          metalness: 0.05,
+          // relieve suave en la base; la laca de arriba queda lisa y brillante
+          bumpMap: bump,
+          bumpScale: 0.6,
           clearcoat: 1,
-          clearcoatRoughness: 0.08,
-          sheen: 0.4,
-          sheenColor: new THREE.Color(a.color),
+          clearcoatRoughness: 0.12,
+          // brillo perlado: el tono cambia un poco según el ángulo
+          iridescence: 0.35,
+          iridescenceIOR: 1.4,
+          iridescenceThicknessRange: [180, 420],
+          sheen: 0.6,
+          sheenRoughness: 0.4,
+          sheenColor: new THREE.Color(0xffffff),
           emissive: new THREE.Color(a.color),
-          emissiveIntensity: 0.08,
+          emissiveIntensity: 0.06,
         }),
     );
 
     const symbol = new THREE.Group();
-    ARCS.forEach((a, i) => symbol.add(buildArc(a, mats[i], lite)));
+    const arcs = ARCS.map((a, i) => buildArc(a, mats[i], lite));
+    arcs.forEach((g) => symbol.add(g));
     const rig = new THREE.Group(); // rig = mouse/scroll; symbol = idle
     rig.add(symbol);
     scene.add(rig);
@@ -156,6 +208,17 @@ export default function Symbol3D({
       mouse.x += (mouse.tx - mouse.x) * 0.05;
       mouse.y += (mouse.ty - mouse.y) * 0.05;
 
+      if (intro) {
+        // 0→1 en ~1.5 s tras una pausa breve; los arcos llegan girando desde lados opuestos
+        const k = Math.min(1, Math.max(0, (t - 0.25) / 1.5));
+        const e = easeOutBack(k);
+        arcs.forEach((g, i) => {
+          const side = i === 0 ? 1 : -1;
+          g.position.set(side * (1 - e) * 3.2, -side * (1 - e) * 1.2, (1 - e) * -2);
+          g.rotation.z = side * (1 - e) * Math.PI * 0.9;
+          g.scale.setScalar(0.6 + 0.4 * Math.min(1, e));
+        });
+      }
       if (spin) {
         symbol.rotation.y = Math.sin(t * 0.5) * 0.22;
         symbol.rotation.x = Math.sin(t * 0.37) * 0.12;
@@ -196,6 +259,7 @@ export default function Symbol3D({
         }
       });
       envTex.dispose();
+      bump.dispose();
       pmrem.dispose();
       renderer.dispose();
       renderer.domElement.remove();
@@ -207,7 +271,7 @@ export default function Symbol3D({
       window.removeEventListener("pointermove", onMove);
       dispose();
     };
-  }, [progress, scale, spin]);
+  }, [progress, scale, spin, intro]);
 
   return <div ref={hostRef} className={className} style={style} aria-hidden />;
 }
