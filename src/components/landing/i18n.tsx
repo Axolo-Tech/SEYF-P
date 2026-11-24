@@ -17,6 +17,7 @@ const es = {
   store: { appSub: "Descarga en", playSub: "Disponible en" },
   hero: {
     eyebrow: "Ahorro e inversión en pesos",
+    tagline: ["Tu dinero.", "Siempre rindiendo."],
     words: ["Tu", "dinero,", "protegido", "y", "creciendo", "en", "automático."],
     lede: "Tus pesos generan rendimiento todos los días. Sin comisiones.",
     cta: "Iniciar ahora",
@@ -161,6 +162,7 @@ const en: Dict = {
   store: { appSub: "Download on the", playSub: "Get it on" },
   hero: {
     eyebrow: "Savings and investing in pesos",
+    tagline: ["Your money.", "Always earning."],
     words: ["Your", "money,", "protected", "and", "growing", "on", "autopilot."],
     lede: "Your pesos earn yield every single day. No fees.",
     cta: "Get started",
@@ -303,6 +305,7 @@ const pt: Dict = {
   store: { appSub: "Baixe na", playSub: "Disponível no" },
   hero: {
     eyebrow: "Poupança e investimento em pesos",
+    tagline: ["Seu dinheiro.", "Sempre rendendo."],
     words: ["Seu", "dinheiro,", "protegido", "e", "crescendo", "no", "automático."],
     lede: "Seus pesos rendem todos os dias. Sem taxas.",
     cta: "Começar agora",

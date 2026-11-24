@@ -309,6 +309,23 @@ function LazyMount({ children, className, margin = "600px" }: { children: React.
   return <div ref={ref} className={className} aria-hidden />;
 }
 
+/* stickers del hero: arte propio de SEYF (moneda, bandera, chip de SPEI, símbolo) */
+const CoinSticker = ({ fill, label }: { fill: string; label: string }) => (
+  <svg viewBox="0 0 100 100" width="100%" height="100%">
+    <circle cx="52" cy="54" r="44" fill="#120E24" />
+    <circle cx="48" cy="48" r="44" fill={fill} stroke="#120E24" strokeWidth="5" />
+    <circle cx="48" cy="48" r="31" fill="none" stroke="#120E24" strokeWidth="4" strokeDasharray="5 7" opacity=".55" />
+    <text x="48" y="64" textAnchor="middle" fontSize="44" fontWeight="900" fill="#120E24" fontFamily="var(--font-poster), Impact, sans-serif">{label}</text>
+  </svg>
+);
+const STICKERS: { id: string; rot: number; depth: number; el: React.ReactNode }[] = [
+  { id: "coin", rot: -14, depth: 1.4, el: <CoinSticker fill="#C8FF4D" label="$" /> },
+  { id: "flag", rot: 10, depth: 0.9, el: <span><FlagMX s={64} /></span> },
+  { id: "spei", rot: -8, depth: 1.1, el: <span className="sticker-pill">SPEI 24/7</span> },
+  { id: "sym", rot: 12, depth: 1.6, el: <span><SeyfSymbol size={54} alt="" /></span> },
+  { id: "usd", rot: 16, depth: 0.7, el: <CoinSticker fill="#B9A4FF" label="%" /> },
+];
+
 /** Hero pinneado: el símbolo 3D gira con el scroll mientras cambian 3 mensajes. */
 function HeroCinema() {
   const { t } = useI18n();
@@ -316,14 +333,15 @@ function HeroCinema() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const p = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.4 });
 
-  const b1o = useTransform(p, [0, 0.2, 0.3], [1, 1, 0]);
-  const b1y = useTransform(p, [0, 0.3], [0, -80]);
+  const b1o = useTransform(p, [0, 0.18, 0.3], [1, 1, 0]);
+  const b1y = useTransform(p, [0, 0.3], [0, -60]);
+  const b1s = useTransform(p, [0, 0.3], [1, 1.18]);
   const b2o = useTransform(p, [0.32, 0.37, 0.58, 0.63], [0, 1, 1, 0]);
   const b2s = useTransform(p, [0.32, 0.4], [0.94, 1]);
   const b3o = useTransform(p, [0.66, 0.76, 1], [0, 1, 1]);
   const b3y = useTransform(p, [0.66, 0.78], [60, 0]);
-  // --k: 1 = símbolo a la derecha (junto al texto), 0 = centrado; vuelve a la derecha en el beat 3
-  const k = useTransform(p, [0, 0.26, 0.4, 0.6, 0.74], [1, 1, 0, 0, 1]);
+  // --k: 0 = centrado (detrás de "SEYF" y entre "Rinde" y "diario"), 1 = a la derecha en el beat 3
+  const k = useTransform(p, [0, 0.6, 0.74], [0, 0, 1]);
   // en el beat 2 el símbolo se encoge para caber entre "Rinde" y "diario"
   const symScaleDesk = useTransform(p, [0.26, 0.38, 0.6, 0.74], [1, 0.58, 0.58, 0.8]);
   // móvil: el canvas ajusta el símbolo al ancho, así que de entrada se achica para
@@ -334,6 +352,25 @@ function HeroCinema() {
   const hint = useTransform(p, [0, 0.06], [1, 0]);
   // una parada por mensaje: propuesta, "Rinde diario", "Sin letras chiquitas"
   useSnapSection(ref, [0, 0.48, 0.88]);
+
+  // parallax de los stickers con el mouse (--mx/--my en -1..1; cada sticker escala por su --d)
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let raf = 0;
+    const onMove = (e: PointerEvent) => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        el.style.setProperty("--mx", ((e.clientX / window.innerWidth) * 2 - 1).toFixed(3));
+        el.style.setProperty("--my", ((e.clientY / window.innerHeight) * 2 - 1).toFixed(3));
+      });
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("pointermove", onMove);
+    };
+  }, []);
 
   return (
     <section className="hero-cinema" ref={ref}>
@@ -346,37 +383,54 @@ function HeroCinema() {
           </motion.div>
         </motion.div>
 
-        {/* Beat 1 — propuesta */}
-        <motion.div className="wrap beat beat-1" style={{ opacity: b1o, y: b1y }}>
-          <div className="hero-copy">
-            <motion.div className="hero-eyebrow" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.15, ease: EASE }}>
-              <span className="live-dot" /> {t.hero.eyebrow}
+        {/* Beat 1 — póster: SEYF gigante sobre el símbolo 3D, con stickers flotando */}
+        <motion.div className="beat beat-1 hero-poster" style={{ opacity: b1o, y: b1y, scale: b1s }}>
+          <h1 className="poster-word" aria-label="SEYF">
+            {"SEYF".split("").map((c, i) => (
+              <span className="poster-mask" key={i} aria-hidden>
+                <motion.span
+                  initial={{ y: "110%", rotate: 6 }}
+                  animate={{ y: 0, rotate: 0 }}
+                  transition={{ duration: 1, delay: 0.2 + i * 0.07, ease: EASE }}
+                >
+                  {c}
+                </motion.span>
+              </span>
+            ))}
+          </h1>
+          <p className="poster-tag display">
+            <motion.span initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.6, ease: EASE }}>
+              {t.hero.tagline[0]}
+            </motion.span>{" "}
+            <motion.span className="poster-tag-b" initial={{ opacity: 0, x: 24, filter: "blur(8px)" }} animate={{ opacity: 1, x: 0, filter: "blur(0px)" }} transition={{ duration: 0.8, delay: 0.95, ease: EASE }}>
+              {t.hero.tagline[1]}
+            </motion.span>
+          </p>
+          <motion.p className="poster-lede" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 1.05, ease: EASE }}>
+            {t.hero.lede}
+          </motion.p>
+          <motion.div className="hero-cta poster-cta" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 1.15, ease: EASE }}>
+            <Link className="btn btn-ink btn-pill" href="/app">
+              {t.hero.cta}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M7 17L17 7M9 7h8v8" /></svg>
+            </Link>
+            <a className="btn btn-outline btn-pill" href="#producto">{t.hero.how}</a>
+          </motion.div>
+
+          {/* stickers: entran con rebote, flotan solos y se mueven con el mouse a distinta profundidad */}
+          {STICKERS.map((s, i) => (
+            <motion.div
+              key={s.id}
+              className={`sticker sticker-${s.id}`}
+              style={{ "--d": s.depth } as React.CSSProperties}
+              initial={{ opacity: 0, scale: 0.3, rotate: s.rot - 40 }}
+              animate={{ opacity: 1, scale: 1, rotate: s.rot }}
+              transition={{ type: "spring", stiffness: 260, damping: 14, delay: 0.7 + i * 0.12 }}
+              aria-hidden
+            >
+              <div className="sticker-bob" style={{ animationDelay: `${i * -1.3}s` }}>{s.el}</div>
             </motion.div>
-            <h1 className="display">
-              {t.hero.words.map((w, i) => (
-                <span className="hero-word-mask" key={i}>
-                  <motion.span
-                    className="hero-word"
-                    initial={{ y: "105%" }}
-                    animate={{ y: 0 }}
-                    transition={{ duration: 0.9, delay: 0.25 + i * 0.06, ease: EASE }}
-                  >
-                    {w}
-                  </motion.span>
-                </span>
-              ))}
-            </h1>
-            <motion.p className="lede" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.75, ease: EASE }}>
-              {t.hero.lede}
-            </motion.p>
-            <motion.div className="hero-cta" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.9, ease: EASE }}>
-              <Link className="btn btn-primary btn-lg magnetic" href="/app">
-                {t.hero.cta}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-              </Link>
-              <a className="hero-link" href="#producto">{t.hero.how}</a>
-            </motion.div>
-          </div>
+          ))}
         </motion.div>
 
         {/* Beat 2 — rendimiento */}
