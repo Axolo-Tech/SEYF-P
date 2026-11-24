@@ -40,8 +40,10 @@ yarn-error.log*
 # vercel
 .vercel
 
-# claude code (config local)
-.claude/
+# claude code: solo se versiona la config compartida (.claude/settings.json);
+# settings.local.json, launch.json, worktrees/ y skills/ quedan locales
+.claude/*
+!.claude/settings.json
 
 # typescript
 *.tsbuildinfo
