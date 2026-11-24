@@ -1123,7 +1123,7 @@ function LandingInner() {
           <span className="it"><span className="flag"><FlagCO /></span> {t.bonds.countries.co} · TES 9.60%</span>
           <span className="it"><span className="flag"><FlagEU /></span> {t.bonds.countries.eu} · Bonos UE 3.40%</span>
           <span className="it"><span className="flag"><FlagKR /></span> {t.bonds.short.kr} · KTB 3.35%</span>
-          <span className="it" style={{ color: "var(--accent-ink)" }}>{t.marqueeFx}</span>
+          <span className="it it-fx">{t.marqueeFx}</span>
         </VelocityMarquee>
 
         <Manifesto />
