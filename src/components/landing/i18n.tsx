@@ -68,6 +68,21 @@ const es = {
     sub: "Cada pieza de SEYF corre sobre protocolos abiertos y auditables del ecosistema.",
     roles: ["Red de pagos · liquidación en ~5 s", "Bóvedas de rendimiento on-chain", "Wallet sin seed phrase", "CETES tokenizados · SPEI"],
   },
+  ways: {
+    tag: "Todo en una app",
+    title: "Tu dinero, a tu manera.",
+    tabs: ["Ahorra", "Adelanta", "Retira"],
+    panels: [
+      { h: "Ahorra y rinde diario", p: "Tus pesos generan rendimiento que se paga todos los días. Sin plazos forzosos ni saldo mínimo.", cta: "Empezar a ahorrar" },
+      { h: "Adelanta tu rendimiento", p: "Usa hoy lo que tu ahorro va a generar. Tu ahorro queda como respaldo y sigue siendo tuyo. Beta en Stellar con topes bajos.", cta: "Pedir un adelanto" },
+      { h: "Retira cuando quieras", p: "Manda tu dinero a tu cuenta por SPEI a cualquier hora, y llega en segundos.", cta: "Abrir mi cuenta" },
+    ],
+    art: {
+      saving: "Tu ahorro", earned: "Ganado hoy", daily: "rinde diario",
+      advance: "Adelanto disponible", backing: "Respaldo: tu ahorro", locked: "bloqueado",
+      spei: "SPEI enviado", to: "A tu cuenta ••90", arrived: "Llegó en segundos",
+    },
+  },
   quote: {
     a: "Tu dinero",
     b: "no duerme",
@@ -213,6 +228,21 @@ const en: Dict = {
     sub: "Every piece of SEYF runs on open, auditable protocols from the ecosystem.",
     roles: ["Payments network · ~5 s settlement", "On-chain yield vaults", "Wallet with no seed phrase", "Tokenized CETES · SPEI"],
   },
+  ways: {
+    tag: "All in one app",
+    title: "Your money, your way.",
+    tabs: ["Save", "Advance", "Withdraw"],
+    panels: [
+      { h: "Save and earn daily", p: "Your pesos earn yield that's paid every single day. No lock-up periods, no minimum balance.", cta: "Start saving" },
+      { h: "Advance your yield", p: "Use today what your savings will earn. Your savings stay as collateral and remain yours. Beta on Stellar with low caps.", cta: "Get an advance" },
+      { h: "Withdraw anytime", p: "Send your money to your account via SPEI at any hour, and it arrives in seconds.", cta: "Open my account" },
+    ],
+    art: {
+      saving: "Your savings", earned: "Earned today", daily: "earns daily",
+      advance: "Advance available", backing: "Collateral: your savings", locked: "locked",
+      spei: "SPEI sent", to: "To your account ••90", arrived: "Arrived in seconds",
+    },
+  },
   quote: {
     a: "Your money",
     b: "never sleeps",
@@ -355,6 +385,21 @@ const pt: Dict = {
     title: "A melhor infraestrutura da Stellar.",
     sub: "Cada peça da SEYF roda sobre protocolos abertos e auditáveis do ecossistema.",
     roles: ["Rede de pagamentos · liquidação em ~5 s", "Cofres de rendimento on-chain", "Carteira sem seed phrase", "CETES tokenizados · SPEI"],
+  },
+  ways: {
+    tag: "Tudo em um app",
+    title: "Seu dinheiro, do seu jeito.",
+    tabs: ["Poupe", "Antecipe", "Saque"],
+    panels: [
+      { h: "Poupe e renda todo dia", p: "Seus pesos geram rendimento pago todos os dias. Sem prazos obrigatórios nem saldo mínimo.", cta: "Começar a poupar" },
+      { h: "Antecipe seu rendimento", p: "Use hoje o que sua poupança vai render. Ela fica como garantia e continua sendo sua. Beta na Stellar com limites baixos.", cta: "Pedir uma antecipação" },
+      { h: "Saque quando quiser", p: "Envie seu dinheiro para sua conta via SPEI a qualquer hora, e ele chega em segundos.", cta: "Abrir minha conta" },
+    ],
+    art: {
+      saving: "Sua poupança", earned: "Ganho hoje", daily: "rende todo dia",
+      advance: "Antecipação disponível", backing: "Garantia: sua poupança", locked: "bloqueado",
+      spei: "SPEI enviado", to: "Para sua conta ••90", arrived: "Chegou em segundos",
+    },
   },
   quote: {
     a: "Seu dinheiro",

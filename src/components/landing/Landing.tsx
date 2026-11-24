@@ -13,6 +13,7 @@ import {
   AnimatePresence,
   motion,
   useAnimationFrame,
+  useInView,
   useMotionValue,
   useMotionValueEvent,
   useReducedMotion,
@@ -951,6 +952,113 @@ function SecurityStack() {
 }
 
 /* ---------- landing ---------- */
+/** Hoja: la sección sube con esquinas redondeadas y tapa a la anterior. El fondo
+    es una capa aparte que se ensancha al entrar (solo transform, sin repintar). */
+function Sheet({ tone, children }: { tone: "white" | "lilac" | "lime" | "ink"; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "start 0.15"] });
+  const sx = useTransform(scrollYProgress, [0, 1], [0.9, 1]);
+  return (
+    <div className={`sheet sheet-${tone}`} ref={ref}>
+      <motion.div className="sheet-bg" style={{ scaleX: sx }} aria-hidden />
+      <div className="sheet-body">{children}</div>
+    </div>
+  );
+}
+
+/** Selector con pestañas: Ahorra / Adelanta / Retira. Rota solo mientras se ve,
+    hasta que tocas una pestaña. */
+function WaysTabs() {
+  const { t } = useI18n();
+  const w = t.ways;
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { amount: 0.45 });
+  const [i, setI] = useState(0);
+  const [auto, setAuto] = useState(true);
+  useEffect(() => {
+    if (!auto || !inView) return;
+    const id = setInterval(() => setI((v) => (v + 1) % 3), 6000);
+    return () => clearInterval(id);
+  }, [auto, inView]);
+  const panel = w.panels[i];
+  const a = w.art;
+  const art = [
+    <div className="ways-card" key="s">
+      <span className="wc-k">{a.saving}</span>
+      <span className="wc-v num">$25,000.00</span>
+      <div className="wc-row">
+        <span className="wc-k"><span className="live-dot" /> {a.earned}</span>
+        <GrowingAmount base={6.85} apy={9} size={22} align="left" color="#C8FF4D" prefix="+$" tail={2} id="lp-ways" />
+      </div>
+      <span className="wc-chip">{a.daily}</span>
+    </div>,
+    <div className="ways-card" key="a">
+      <span className="wc-k">{a.advance}</span>
+      <span className="wc-v num">$850.00</span>
+      <div className="wc-bar"><motion.i initial={{ scaleX: 0 }} animate={{ scaleX: 0.62 }} transition={{ duration: 1.1, delay: 0.25, ease: EASE }} /></div>
+      <div className="wc-row"><span className="wc-k">{a.backing}</span><span className="wc-chip wc-chip-v">{a.locked}</span></div>
+    </div>,
+    <div className="ways-card" key="r">
+      <span className="wc-k">{a.spei}</span>
+      <span className="wc-v num">−$2,500.00</span>
+      <div className="wc-row"><span className="wc-k">{a.to}</span></div>
+      <span className="wc-chip wc-ok">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12l5 5L20 7" /></svg>
+        {a.arrived}
+      </span>
+    </div>,
+  ][i];
+  return (
+    <section className="sec-pad ways" id="usos" ref={ref}>
+      <div className="wrap">
+        <SecHead center tag={w.tag} title={w.title} />
+        <div className="ways-tabs" role="tablist">
+          {w.tabs.map((label, k) => (
+            <button
+              key={label}
+              role="tab"
+              aria-selected={i === k}
+              className={`ways-tab${i === k ? " on" : ""}`}
+              onClick={() => {
+                setI(k);
+                setAuto(false);
+              }}
+            >
+              {i === k && <motion.span layoutId="ways-pill" className="ways-pill" transition={{ type: "spring", stiffness: 400, damping: 34 }} />}
+              <span className="ways-tab-l">{label}</span>
+            </button>
+          ))}
+        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={i}
+            className={`ways-panel ways-${i}`}
+            role="tabpanel"
+            initial={{ opacity: 0, y: 26 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -18 }}
+            transition={{ duration: 0.5, ease: EASE }}
+          >
+            <div className="ways-art">
+              <motion.div initial={{ rotate: -6, scale: 0.9 }} animate={{ rotate: i === 1 ? 3 : -3, scale: 1 }} transition={{ type: "spring", stiffness: 180, damping: 16 }}>
+                {art}
+              </motion.div>
+            </div>
+            <div className="ways-copy">
+              <h3 className="display">{panel.h}</h3>
+              <p>{panel.p}</p>
+              <Link className="btn btn-ink btn-pill" href="/app">
+                {panel.cta}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M7 17L17 7M9 7h8v8" /></svg>
+              </Link>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </section>
+  );
+}
+
 export default function Landing() {
   return (
     <LangProvider>
@@ -1086,6 +1194,7 @@ function LandingInner() {
 
         <Manifesto />
 
+        <Sheet tone="white">
         <PhoneStory />
 
         {/* STATS — hechos del producto */}
@@ -1107,7 +1216,17 @@ function LandingInner() {
           </div>
         </section>
 
-        <BondsRail />
+        </Sheet>
+
+        <Sheet tone="lilac">
+          <BondsRail />
+        </Sheet>
+
+        <Sheet tone="lime">
+          <WaysTabs />
+        </Sheet>
+
+        <Sheet tone="white">
 
         {/* ALIADOS */}
         <section className="sec-pad" id="aliados">
@@ -1132,8 +1251,13 @@ function LandingInner() {
           </div>
         </section>
 
-        <QuotePin />
+        </Sheet>
 
+        <Sheet tone="ink">
+          <QuotePin />
+        </Sheet>
+
+        <Sheet tone="white">
         <LiveActivity />
 
         <SecurityStack />
@@ -1158,6 +1282,9 @@ function LandingInner() {
           </div>
         </section>
 
+        </Sheet>
+
+        <Sheet tone="lilac">
         {/* FINAL CTA */}
         <section className="sec-pad" id="descargar">
           <div className="wrap">
@@ -1200,6 +1327,7 @@ function LandingInner() {
             </div>
           </div>
         </footer>
+        </Sheet>
       </main>
     </div>
   );
