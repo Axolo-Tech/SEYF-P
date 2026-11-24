@@ -2,123 +2,171 @@
 @SOUL.md
 @docs/seyf-context.md
 
-> ⚠️ **Plan vigente del hackathon: `docs/hackmeridian-12h.md`** (25–26 oct 2026). Sustituye a
-> `docs/hackmeridian-plan.md`: no se migra la app; solo la ruta `/retiro` (vault USDC de DeFindex +
-> adelanto con `seyf_advance`). Lo de abajo describe el riel EVM heredado y no se toca.
+# SEYF: ahorro en USDC sobre Stellar mainnet
 
-# SEYF — super app fintech (MXNB + Privy + Supabase)
+Guía de arranque para agentes. Describe el código de `meridian`. Antes de
+construir, lee `SOUL.md` (principios), `docs/seyf-context.md` (los 4 checks de
+Stellar) y `soroban/DEPLOYMENTS.md` (contrato, cuentas y evidencia de mainnet).
+El producto público está en `README.md` (inglés) y `README.es.md`.
+
+> **Direcciones `G…`/`C…`, parámetros y hashes: solo de `soroban/DEPLOYMENTS.md`.**
+> Hay cuentas *look-alike* que envenenan el historial de transacciones. Nunca
+> copies una dirección desde el historial.
+
+## Qué hace el producto hoy
+
+1. **Entrada con correo** mediante Pollar: cuenta Stellar cofirmada (Turnkey 2 de 2),
+   sin seed phrase ni extensión.
+2. **Sin XLM para el usuario:** el sponsor de SEYF paga reservas (CAP-33) y
+   comisiones (fee-bump) de las operaciones permitidas.
+3. **Ahorro en USDC** (Circle) en el vault DeFindex Meru, que presta en un pool de Blend.
+4. **Adelanto de rendimiento** con el contrato propio `seyf_advance` (Soroban):
+   bloquea acciones del vault y paga hoy, desde la tesorería del contrato, el
+   rendimiento de 1 a 30 días. `repay` libera todo antes de tiempo; `settle`
+   (keeper) cierra la posición cuando el rendimiento real cubre el adelanto.
+
+Es una beta en mainnet con topes bajos y el contrato **sin auditar**: límites en
+`docs/contracts.md` y parámetros vigentes en `soroban/DEPLOYMENTS.md`. La rampa
+MXN por SPEI (Etherfuse) y los CETES tokenizados están integrados solo en
+testnet; en mainnet la UI los muestra como "próximamente" (`NEXT_PUBLIC_SPEI_ENABLED`).
 
 ## Stack
-- Next.js 16.2.6 (App Router), React 19.2, TypeScript 5.9, Tailwind v4
-- Privy 3.28 — auth + embedded wallet + smart wallet (ERC-4337, gas patrocinado)
-- Juno/Bitso Business — MXNB (stablecoin peso, ERC-20 en Arbitrum, 6 decimales)
-- Bitso Exchange API — FX/órdenes de mercado (mismo HMAC, mismas llaves que Juno)
-- Supabase — persistencia (perfiles, CLABEs, cuentas bancarias, bóvedas, conversiones, límites mensuales)
-- viem 2.51 + permissionless 0.2 — onchain
+
+- Next.js 16.2.6 (App Router), React 19.2, TypeScript 5.9, Tailwind v4.
+- `@stellar/stellar-sdk` 14.6: Horizon para cuentas y envíos, Soroban RPC para contratos.
+- Pollar (`@pollar/core`, `@pollar/react` 0.12): login y wallet embebida.
+- DeFindex SDK 0.3: vault USDC (Meru). Blend se usa a través de DeFindex.
+- Soroswap SDK 0.5 y SDEX: swaps y path payments.
+- Supabase: metadatos (perfil, nombres de bóvedas, estado de KYC). Los saldos
+  salen de la cadena, no de la BD.
+- Contrato: `soroban/seyf_advance` (Rust, soroban-sdk 29.0.1, 17 pruebas).
 
 ## Arquitectura
 
 ```
 src/
   app/
-    api/juno/*          # Route handlers — firman HMAC hacia Juno, nunca exponen secrets
-    api/bitso/*         # Balances, rates y conversiones vía Bitso Exchange API (server-side)
-    api/convert/        # Orquestación server-side de conversión FX (idempotente)
-    api/db/*            # Supabase con service_role: profile, clabe, banks, vaults,
-                        #   bonus, conversions, limits
-    api/treasury/reconcile/  # Reconciliación post-conversión (ajusta saldos on-chain vs ledger)
-    app/                # Shell autenticada (/app/**)
+    app/                    # /app: la app (SeyfApp)
+    retiro/                 # /retiro: flujo enfocado de ahorro + adelanto (RetiroApp)
+    (legal)/                # páginas legales
+    api/auth/sep10/         # challenge y token SEP-10 (firma seyf-sep10-hot)
+    api/vault/*             # XDR de depósito/retiro del vault DeFindex; posición
+    api/defindex/*          # saldos, estrategias, prepare/submit de DeFindex
+    api/advance/*           # quote, position, history, activity y build (open/repay/settle)
+    api/stellar/sponsor/*   # crear cuenta, trustline USDC, submit con fee-bump
+    api/stellar/pay/, api/sdex/, api/swap/   # envíos y swaps
+    api/prices/*            # precios en MXN (Reflector; /api/prices/mxn aún usa Bitso de respaldo)
+    api/seyf/*, api/webhooks/etherfuse       # Etherfuse: KYC, rampa SPEI, CETES (testnet)
+    api/db/*                # Supabase con service_role, detrás de la sesión SEP-10
   components/
-    app/
-      screens/          # core.tsx (Onboarding/Home/Wallet), invest.tsx (Bóvedas/FX),
-                        #   account.tsx (Tarjeta/Perfil)
-      modals/           # AddBankModal, DepositModal, RedeemModal, SendModal,
-                        #   SendOnchainModal, MoreSheet
-      SeyfApp.tsx       # Shell + router de estado interno
-      ui.tsx            # Primitivas de UI (Icon, Spark, Flag, Ring…)
-      shared.tsx        # Componentes compartidos entre screens
-      ClabeCard.tsx     # Tarjeta con número CLABE del usuario
-      IOSDevice.tsx     # Frame de celular para la landing
-      WelcomeBonus.tsx  # Banner/flujo del bono de bienvenida
-      RiskQuiz.tsx      # Quiz de perfil de riesgo (inversiones)
-      ProjectionCard.tsx
-      LiquidityAdvanceModal.tsx
-      Portal.tsx        # Portal React para modales fuera del árbol
-    landing/            # Landing pública
-    wallet/             # WalletContext + PrivyBridge
-  config/
-    backend.ts          # URL base del backend (NEXT_PUBLIC_BACKEND_URL o mismo origen)
-  hooks/
-    useJuno.ts          # Hook principal Juno
-    useBitsoRates.ts    # Tipos de cambio FX vía /api/bitso/rates
-    useConversions.ts   # Historial de conversiones del usuario
-    useMonthlyLimits.ts # Límites y uso mensual de conversión
-    useOnchain.ts       # Lectura de balance MXNB on-chain
-    usePendingTxns.ts   # Transacciones on-chain pendientes
-    useUserBanks.ts
-    useUserClabe.ts
-    useVaults.ts
+    app/SeyfApp.tsx         # shell + router interno por estado (`route`), no el router de Next
+    app/screens/            # core (Inicio, Movimientos), invest (bóvedas), advance,
+                            #   account, kyc, login, asset-detail
+    retiro/                 # pantallas de /retiro
+    providers/              # SeyfPollarProvider, SeyfAuthBridge (sesión SEP-10)
+    wallet/                 # WalletContext + PollarBridge (sesión Pollar → contexto)
+    landing/, legal/, brand/
   lib/
-    chain.ts            # Config Arbitrum + helpers MXNB on-chain
-    juno/
-      client.ts         # HMAC-SHA256, junoRequest()
-      issue.ts          # Withdrawal MXNB on-chain desde el float del negocio
-      respond.ts        # Helpers de respuesta uniformes para route handlers /api/juno/*
-    bitso/
-      client.ts         # HMAC-SHA256, bitsoRequest() — Bitso Exchange API (server-side)
-      assets.ts         # Catálogo de activos/books disponibles
-      orders.ts         # Ejecución de órdenes de mercado (conversión FX)
-    supabase/
-      server.ts         # Cliente Supabase con service_role
-      db.ts             # Funciones de datos server-side (profile, conversions, limits…)
-    store.ts            # Capa storage: Supabase (NEXT_PUBLIC_USE_SUPABASE=true) o localStorage
-  services/
-    junoService.ts      # Cliente tipado para el navegador
-  types/juno.ts         # Tipos compartidos de la API Juno
+    stellar/                # red, SEP-10, JWT, sponsor, Reflector, USDC, path payments
+    advance/                # config y cliente de seyf_advance, eventos, checkpoint de actividad
+    defindex/               # cliente, catálogo de vaults, preparación de XDR
+    pollar/                 # sesión y API cliente de Pollar
+    etherfuse/, seyf/       # rampa MXN/CETES (testnet) y helpers de la wallet Stellar
+    supabase/server.ts      # único cliente Supabase (service_role)
+    supabase/db.ts          # funciones de datos server-side
+    store.ts                # Supabase (/api/db/*) o localStorage
+    rails.ts                # IS_MAINNET, SPEI_ENABLED
+  proxy.ts                  # apaga en producción las rutas heredadas (ver abajo)
+soroban/                    # contrato seyf_advance + DEPLOYMENTS.md
+scripts/keeper.mjs          # settle de adelantos cubiertos (.github/workflows/keeper.yml, cada 10 min)
+scripts/check-mainnet.mjs   # verificador de configuración (npm run check:mainnet)
+database/schema.sql         # esquema de Supabase
+public/.well-known/stellar.toml   # SEP-1
 ```
+
+**Flujo de firma:** el servidor arma y simula la transacción → Pollar la muestra
+y el usuario firma → el servidor la envuelve en un fee-bump del sponsor y la
+envía → resultado final.
 
 ## Reglas de desarrollo
 
-- Los secrets de Juno/Bitso (`BITSO_APIKEY`, `BITSO_SECRET_APIKEY`) **solo viven en el servidor**. Nunca bajo `NEXT_PUBLIC_*`.
-- Las API routes de Juno (`/api/juno/*`) y Bitso (`/api/bitso/*`) son el único punto que firma HMAC. El cliente nunca llama a esas APIs directamente.
-- La capa `store.ts` es el único lugar que decide Supabase vs localStorage — no duplicar esa lógica en componentes.
-- Las funciones de datos Supabase viven en `lib/supabase/db.ts`; el cliente Supabase con service_role en `lib/supabase/server.ts`. No crear clientes Supabase fuera de esos módulos.
-- Pantallas de la app (screens) son componentes dentro de `SeyfApp.tsx`; el router es el estado `route` interno, no Next.js router.
-- `WalletContext` abstrae Privy — las screens no importan hooks de Privy directamente.
-- La conversión FX se orquesta en `/api/convert` (server-side, idempotente): transfiere MXNB a tesorería on-chain → ejecuta orden en Bitso → guarda en `conversions` → reconcilia saldo.
+- **Secretos solo en el servidor**, nunca bajo `NEXT_PUBLIC_*` ni en el repo:
+  `STELLAR_SPONSOR_SECRET`, `SEP10_SERVER_SECRET`, `SEYF_AUTH_JWT_SECRET`,
+  `SUPABASE_SERVICE_ROLE_KEY`, `DEFINDEX_API_KEY`, `SOROSWAP_API_KEY`,
+  `ETHERFUSE_API_KEY`. `KEEPER_SECRET` vive en GitHub Actions. La llave admin
+  del contrato nunca va a un servidor.
+- Las rutas que gastan al sponsor o tocan Supabase exigen sesión SEP-10
+  (`requireSession` / `requireDbAccess`); las del sponsor, además, rate limit.
+  Una ruta nueva de ese tipo hace lo mismo.
+- El sponsor solo cubre las operaciones permitidas en `src/lib/stellar/sponsor.ts`
+  (contrato del adelanto, vault USDC, SAC de USDC y trustline de USDC), con
+  `resourceFee` topado. Ampliar esa lista es una decisión de seguridad, no un detalle.
+- Red, passphrase, Horizon y RPC salen solo de `src/lib/stellar/network.ts`.
+  SDF no corre RPC público de mainnet: el proveedor se elige por env.
+- Soroban: `simulateTransaction` + `assembleTransaction` antes de enviar, y
+  `pollTransaction` tras el `PENDING`. Nada se firma en mainnet sin simular.
+- Supabase: el cliente vive solo en `lib/supabase/server.ts` y las funciones en
+  `lib/supabase/db.ts`. `store.ts` es el único lugar que decide Supabase o localStorage.
+- Las pantallas de `/app` son componentes dentro de `SeyfApp.tsx`; se navega con
+  el estado `route`, no con el router de Next.
+- Los flujos con firma se prueban en testnet o con fixtures, no en mainnet.
+
+## Código heredado EVM: no construir encima
+
+La versión anterior (Arbitrum, MXNB, Privy, Juno/Bitso Business, Dynerox) ya no
+opera y solo usó fondos de prueba. Sigue en el árbol mientras se retira por
+partes. No le agregues funciones ni la tomes como referencia de arquitectura.
+
+- `src/app/api/{juno,bitso,dynerox,convert,treasury}`: `src/proxy.ts` responde
+  404 en producción salvo con `SEYF_LEGACY_RAILS_ENABLED=true`.
+- `src/lib/{juno,bitso,dynerox}`, `src/lib/chain.ts` (Arbitrum),
+  `src/services/junoService.ts`, `src/types/{juno,dynerox}.ts`, `src/hooks/useJuno.ts`,
+  `src/hooks/useOnchain.ts`, `src/components/wallet/PrivyBridge.tsx` y `contracts/` (Foundry).
+- `WalletContext` conserva nombres de la etapa EVM (`sendMXNB`, `smartAddress`,
+  `balance` comentado como MXNB). `PollarBridge` lo llena con la cuenta Stellar
+  y el saldo en USDC, y las operaciones EVM lanzan error.
+- `package.json` aún declara `@privy-io/react-auth`, `viem`, `ox` y `permissionless`.
 
 ## Variables de entorno
 
-| Variable | Lado | Notas |
-|---|---|---|
-| `BITSO_APIKEY` | server | Juno / Bitso Business API key |
-| `BITSO_SECRET_APIKEY` | server | Juno / Bitso Business API secret |
-| `JUNO_BASE_URL` | server | Default: `https://stage.buildwithjuno.com` |
-| `BITSO_BASE_URL` | server | Default: `https://stage.bitso.com`. Producción: `https://api.bitso.com` |
-| `JUNO_WEBHOOK_SECRET` | server | Verificación firma webhook |
-| `JUNO_BLOCKCHAIN` | server | Default: `ARBITRUM` |
-| `JUNO_WITHDRAWAL_ASSET` | server | Default: `MXNB` |
-| `WELCOME_BONUS_AMOUNT` | server | Monto del bono de bienvenida |
-| `SUPABASE_URL` | server | URL del proyecto Supabase |
-| `SUPABASE_SERVICE_ROLE_KEY` | server | Solo en server (route handlers) |
-| `NEXT_PUBLIC_PRIVY_APP_ID` | cliente | Si ausente, la app corre sin auth |
-| `NEXT_PUBLIC_USE_SUPABASE` | cliente | `"true"` activa persistencia real |
-| `NEXT_PUBLIC_CHAIN` | cliente | `arbitrum` o `arbitrum-sepolia` |
-| `NEXT_PUBLIC_MXNB_ADDRESS` | cliente | Sobreescribe dirección por defecto |
-| `NEXT_PUBLIC_SEYF_VAULTS_ADDRESS` | cliente | Contrato SeyfVaults on-chain; sin valor, bóvedas usan `store` |
-| `NEXT_PUBLIC_SEYF_ADVANCE_ADDRESS` | cliente | Contrato SeyfAdvance on-chain; sin valor, el adelanto de liquidez muestra aviso de configuración. Requiere `NEXT_PUBLIC_SEYF_VAULTS_ADDRESS` |
-| `NEXT_PUBLIC_TREASURY_ADDRESS` | cliente | Tesorería: destino on-chain del MXNB al convertir a divisa. Sin valor, la conversión no mueve fondos on-chain |
-| `NEXT_PUBLIC_ARBITRUM_RPC` | cliente | RPC custom (si no, usa el público) |
-| `NEXT_PUBLIC_BACKEND_URL` | cliente | Solo si el backend está en otro origen |
+Plantilla: `.env.example`. Nombres que lee el código Stellar:
+
+| Grupo | Variables |
+|---|---|
+| Red | `NEXT_PUBLIC_STELLAR_NETWORK`, `NEXT_PUBLIC_POLLAR_STELLAR_NETWORK`, `NEXT_PUBLIC_HORIZON_URL`, `NEXT_PUBLIC_SOROBAN_RPC_URL` |
+| Pollar | `NEXT_PUBLIC_POLLAR_API_KEY`, `NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY` |
+| Contrato y vault | `NEXT_PUBLIC_STELLAR_ADVANCE_CONTRACT`, `NEXT_PUBLIC_DEFINDEX_VAULT_USDC`, `NEXT_PUBLIC_DEFINDEX_VAULT_ADDRESS`, `STELLAR_USDC_ISSUER` |
+| Sponsor (server) | `STELLAR_SPONSOR_SECRET`, `STELLAR_SPONSOR_MAX_FEE`, `STELLAR_SPONSOR_MAX_RESOURCE_FEE`, `SEYF_BETA_ALLOWLIST` |
+| SEP-10 (server) | `SEP10_SERVER_SECRET`, `SEP10_HOME_DOMAIN`, `SEP10_WEB_AUTH_DOMAIN`, `SEYF_AUTH_JWT_SECRET`, `SEYF_AUTH_TTL_SEC` |
+| DeFindex (server) | `DEFINDEX_API_KEY`, `DEFINDEX_BASE_URL` |
+| Supabase | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (server), `NEXT_PUBLIC_USE_SUPABASE`, `SEYF_DB_AUTH_MODE` |
+| Keeper (GitHub Actions) | `KEEPER_SECRET`, `KEEPER_DRY_RUN`, `KEEPER_START_LEDGER`, `SOROBAN_RPC_URL` |
+| Banderas | `NEXT_PUBLIC_SPEI_ENABLED`, `SEYF_LEGACY_RAILS_ENABLED` |
+
+Etherfuse y los rieles heredados tienen sus propias variables (`ETHERFUSE_*`,
+`BITSO_*`, `JUNO_*`, `DYNEROX_*`); búscalas en su módulo.
 
 ## Comandos
 
 ```bash
-npm run dev    # Inicia el servidor de desarrollo
-npm run build  # Verifica tipos + build
-npm run lint   # ESLint
+npm run dev             # http://localhost:3000/app
+npm run build           # typecheck + build (gate de CI)
+npm run lint            # ESLint; en CI es informativo por deuda heredada
+npm run check:mainnet   # verifica la configuración de mainnet
+
+cd soroban && cargo test --locked    # 17 pruebas del contrato
+stellar contract build --locked      # wasm (Stellar CLI 28.1)
 ```
 
-## Degradación graceful
+No hay script de pruebas JS todavía: las suites de `src/lib/etherfuse/__tests__/`
+importan Vitest, que no está instalado.
 
-Si Juno no está configurado o falla, la UI cae a datos mock del prototipo (`_prototype/`). Si Supabase no está activo, usa localStorage con la misma interfaz de `store`.
+CI: `.github/workflows/ci.yml` (build y lint), `contracts.yml` (pruebas y wasm
+del contrato) y `keeper.yml` (cron del keeper).
+
+## Degradación
+
+Sin Supabase (`NEXT_PUBLIC_USE_SUPABASE` distinto de `"true"`), `store.ts` usa
+localStorage con la misma interfaz. Sin el contrato o el vault configurados,
+las rutas de adelanto responden con un error de configuración (`ConfigError`
+en `src/lib/advance/config.ts`, traducido en `src/lib/advance/http.ts`).
