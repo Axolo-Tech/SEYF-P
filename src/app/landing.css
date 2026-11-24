@@ -418,6 +418,10 @@ html.lenis, html.lenis body { height: auto; }
 .lp .sec-tag { display: inline-flex; align-items: center; gap: 10px; font-size: 12.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--accent-ink); margin-bottom: 18px; }
 .lp .sec-tag::before { content: ''; width: 22px; height: 1.5px; background: currentColor; border-radius: 2px; }
 .lp .sec-title { font-size: clamp(34px, 4.6vw, 58px); margin: 0; max-width: 760px; }
+/* títulos tipo póster: letra condensada en mayúsculas, más grandes y apretados */
+.lp .sec-title.display, .lp .final h2.display { font-family: var(--font-poster), Impact, sans-serif; font-weight: 400; text-transform: uppercase;
+  letter-spacing: -0.005em; line-height: .92; }
+.lp .sec-title.display { font-size: clamp(44px, 6vw, 84px); max-width: 880px; }
 .lp .sec-sub { font-size: 18px; color: var(--muted); margin: 20px 0 0; max-width: 600px; }
 .lp .sec-head-center { text-align: center; }
 .lp .sec-head-center .sec-title, .lp .sec-head-center .sec-sub { margin-left: auto; margin-right: auto; }
@@ -538,7 +542,7 @@ html.lenis, html.lenis body { height: auto; }
   background: radial-gradient(80% 90% at 50% 110%, rgba(200,255,77,.55), transparent 60%), linear-gradient(160deg, rgba(109,63,240,0.16), rgba(255,255,255,.7)); }
 .lp .final-canvas { position: absolute; inset: 0; opacity: .3; }
 .lp .final-inner { position: relative; z-index: 1; }
-.lp .final h2 { font-size: clamp(38px, 5.6vw, 76px); margin: 0 auto; max-width: 900px; }
+.lp .final h2 { font-size: clamp(46px, 7vw, 100px); margin: 0 auto; max-width: 900px; }
 .lp .final p { font-size: 19px; color: var(--muted); margin: 20px auto 0; max-width: 520px; }
 .lp .final .hero-cta { justify-content: center; }
 
