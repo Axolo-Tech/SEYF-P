@@ -31,6 +31,7 @@ import { LangProvider, LangSwitch, useI18n } from "./i18n";
 
 // three.js solo en el navegador y fuera del bundle inicial
 const Symbol3D = dynamic(() => import("@/components/brand/Symbol3D"), { ssr: false });
+const FoamTube = dynamic(() => import("@/components/brand/FoamTube"), { ssr: false });
 const CoinsLayer = dynamic(() => import("./CoinsLayer"), { ssr: false });
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -309,23 +310,6 @@ function LazyMount({ children, className, margin = "600px" }: { children: React.
   return <div ref={ref} className={className} aria-hidden />;
 }
 
-/* stickers del hero: arte propio de SEYF (moneda, bandera, chip de SPEI, símbolo) */
-const CoinSticker = ({ fill, label }: { fill: string; label: string }) => (
-  <svg viewBox="0 0 100 100" width="100%" height="100%">
-    <circle cx="52" cy="54" r="44" fill="#120E24" />
-    <circle cx="48" cy="48" r="44" fill={fill} stroke="#120E24" strokeWidth="5" />
-    <circle cx="48" cy="48" r="31" fill="none" stroke="#120E24" strokeWidth="4" strokeDasharray="5 7" opacity=".55" />
-    <text x="48" y="64" textAnchor="middle" fontSize="44" fontWeight="900" fill="#120E24" fontFamily="var(--font-poster), Impact, sans-serif">{label}</text>
-  </svg>
-);
-const STICKERS: { id: string; rot: number; depth: number; el: React.ReactNode }[] = [
-  { id: "coin", rot: -14, depth: 1.4, el: <CoinSticker fill="#C8FF4D" label="$" /> },
-  { id: "flag", rot: 10, depth: 0.9, el: <span><FlagMX s={64} /></span> },
-  { id: "spei", rot: -8, depth: 1.1, el: <span className="sticker-pill">SPEI 24/7</span> },
-  { id: "sym", rot: 12, depth: 1.6, el: <span><SeyfSymbol size={54} alt="" /></span> },
-  { id: "usd", rot: 16, depth: 0.7, el: <CoinSticker fill="#B9A4FF" label="%" /> },
-];
-
 /** Hero pinneado: el símbolo 3D gira con el scroll mientras cambian 3 mensajes. */
 function HeroCinema() {
   const { t } = useI18n();
@@ -344,47 +328,35 @@ function HeroCinema() {
   const k = useTransform(p, [0, 0.6, 0.74], [0, 0, 1]);
   // beat 1: el símbolo es más grande que "SEYF" y se asoma por todos lados (como póster);
   // en el beat 2 se encoge para caber entre "Rinde" y "diario"
-  const symScaleDesk = useTransform(p, [0, 0.26, 0.38, 0.6, 0.74], [1.4, 1.4, 0.58, 0.58, 0.8]);
+  const symScaleDesk = useTransform(p, [0, 0.22, 0.38, 0.6, 0.74], [0.3, 0.3, 0.58, 0.58, 0.8]);
   // móvil: el canvas ajusta el símbolo al ancho, así que de entrada se achica para
   // caber entre la barra y el texto sin taparlos
-  const symScaleMob = useTransform(p, [0, 0.26, 0.38, 0.6, 0.74], [0.95, 0.95, 0.46, 0.46, 0.6]);
+  const symScaleMob = useTransform(p, [0, 0.22, 0.38, 0.6, 0.74], [0.25, 0.25, 0.46, 0.46, 0.6]);
+  // beat 1 lo protagoniza el tubo de espuma; el símbolo aparece cuando el tubo se recoge
+  const symO = useTransform(p, [0, 0.2, 0.32], [0, 0, 1]);
+  const tubeO = useTransform(p, [0, 0.24, 0.32], [1, 1, 0]);
   const mobile = useMediaQuery("(max-width: 880px)");
   const symScale = mobile ? symScaleMob : symScaleDesk;
   const hint = useTransform(p, [0, 0.06], [1, 0]);
   // una parada por mensaje: propuesta, "Rinde diario", "Sin letras chiquitas"
   useSnapSection(ref, [0, 0.48, 0.88]);
 
-  // parallax de los stickers con el mouse (--mx/--my en -1..1; cada sticker escala por su --d)
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    let raf = 0;
-    const onMove = (e: PointerEvent) => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        el.style.setProperty("--mx", ((e.clientX / window.innerWidth) * 2 - 1).toFixed(3));
-        el.style.setProperty("--my", ((e.clientY / window.innerHeight) * 2 - 1).toFixed(3));
-      });
-    };
-    window.addEventListener("pointermove", onMove, { passive: true });
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("pointermove", onMove);
-    };
-  }, []);
-
   return (
     <section className="hero-cinema" ref={ref}>
       <div className="hero-sticky">
         {/* --k mueve el símbolo vía CSS (translateX); la escala va en el hijo para no pisar el transform */}
-        <motion.div className="hero-sym" style={{ "--k": k } as unknown as React.CSSProperties}>
+        {/* tubo de espuma: se dibuja al cargar y se recoge con el scroll */}
+        <motion.div className="hero-tube" style={{ opacity: tubeO }}>
+          <FoamTube progress={p} className="hero-tube-canvas" />
+        </motion.div>
+        <motion.div className="hero-sym" style={{ "--k": k, opacity: symO } as unknown as React.CSSProperties}>
           <motion.div className="hero-sym-inner" style={{ scale: symScale }}>
             <div className="hero-sym-glow" />
             <Symbol3D progress={p} className="hero-canvas" intro />
           </motion.div>
         </motion.div>
 
-        {/* Beat 1 — póster: SEYF gigante sobre el símbolo 3D, con stickers flotando */}
+        {/* Beat 1 — póster: SEYF gigante sobre el tubo de espuma */}
         <motion.div className="beat beat-1 hero-poster" style={{ opacity: b1o, y: b1y, scale: b1s }}>
           <h1 className="poster-word" aria-label="SEYF">
             {"SEYF".split("").map((c, i) => (
@@ -418,20 +390,6 @@ function HeroCinema() {
             <a className="btn btn-outline btn-pill" href="#producto">{t.hero.how}</a>
           </motion.div>
 
-          {/* stickers: entran con rebote, flotan solos y se mueven con el mouse a distinta profundidad */}
-          {STICKERS.map((s, i) => (
-            <motion.div
-              key={s.id}
-              className={`sticker sticker-${s.id}`}
-              style={{ "--d": s.depth } as React.CSSProperties}
-              initial={{ opacity: 0, scale: 0.3, rotate: s.rot - 40 }}
-              animate={{ opacity: 1, scale: 1, rotate: s.rot }}
-              transition={{ type: "spring", stiffness: 260, damping: 14, delay: 0.7 + i * 0.12 }}
-              aria-hidden
-            >
-              <div className="sticker-bob" style={{ animationDelay: `${i * -1.3}s` }}>{s.el}</div>
-            </motion.div>
-          ))}
         </motion.div>
 
         {/* Beat 2 — rendimiento */}

@@ -161,6 +161,8 @@ html.lenis, html.lenis body { height: auto; }
   will-change: transform;
 }
 .lp .hero-sym-inner { position: absolute; inset: 0; }
+.lp .hero-tube { position: absolute; inset: 0; z-index: 1; pointer-events: none; will-change: opacity; }
+.lp .hero-tube-canvas { position: absolute; inset: -4% 0; }
 .lp .hero-canvas { position: absolute; inset: 0; }
 .lp .hero-sym-glow { position: absolute; left: 50%; top: 50%; width: 46vmin; height: 46vmin; transform: translate(-50%, -50%);
   border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.9), rgba(200,255,77,.25) 45%, transparent 70%); filter: blur(40px); }
@@ -189,8 +191,8 @@ html.lenis, html.lenis body { height: auto; }
 .lp .hero-trust .t { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); font-weight: 600; }
 .lp .hero-trust .t svg { color: var(--accent-ink); }
 
-/* ---------- hero v2: póster (SEYF gigante + stickers) ---------- */
-.lp .hero-poster { --mx: 0; --my: 0; position: absolute; inset: 0; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 56px 24px 0; z-index: 2; }
+/* ---------- hero v2: póster (SEYF gigante sobre el tubo de espuma) ---------- */
+.lp .hero-poster { position: absolute; inset: 0; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 56px 24px 0; z-index: 2; }
 /* en el póster los botones ya invitan a bajar: sin la pista de scroll encimada */
 .lp .hero-cinema .scroll-hint { display: none; }
 .lp .poster-word { display: flex; justify-content: center; margin: 0; font-family: var(--font-poster), Impact, sans-serif; font-weight: 400;
@@ -215,24 +217,6 @@ html.lenis, html.lenis body { height: auto; }
 .lp .btn-outline { background: rgba(255,255,255,.75); color: var(--ink); border: 1.5px solid var(--ink); }
 .lp .btn-outline:hover { background: #fff; transform: translateY(-2px); }
 
-/* stickers: el contenedor se mueve con el mouse según su profundidad --d; el hijo flota solo */
-.lp .sticker { position: absolute; z-index: 3; pointer-events: none;
-  translate: calc(var(--mx) * var(--d) * 22px) calc(var(--my) * var(--d) * 18px); transition: translate .6s var(--ease); }
-.lp .sticker-bob { animation: bob 5.5s ease-in-out infinite; filter: drop-shadow(0 18px 22px rgba(40,24,110,.25)); }
-@keyframes bob { 50% { transform: translateY(-14px) rotate(3deg); } }
-.lp .sticker-coin { width: clamp(64px, 7vw, 104px); aspect-ratio: 1; left: 13%; top: 20%; }
-.lp .sticker-usd { width: clamp(52px, 5.4vw, 80px); aspect-ratio: 1; right: 12%; bottom: 24%; }
-.lp .sticker-flag { right: 15%; top: 19%; }
-.lp .sticker-flag .sticker-bob > span { display: block; width: clamp(54px, 5.6vw, 78px); aspect-ratio: 1; border-radius: 50%; overflow: hidden;
-  border: 4px solid var(--ink); box-shadow: 4px 6px 0 var(--ink); }
-.lp .sticker-flag svg { width: 100%; height: 100%; }
-.lp .sticker-spei { left: 9%; bottom: 27%; }
-.lp .sticker-pill { display: inline-block; padding: 10px 18px; border-radius: 999px; background: var(--accent-2); color: #fff; border: 3px solid var(--ink);
-  box-shadow: 4px 5px 0 var(--ink); font-family: var(--font-poster), Impact, sans-serif; font-size: clamp(18px, 1.8vw, 26px); letter-spacing: .02em; white-space: nowrap; }
-.lp .sticker-sym { right: 24%; top: 11%; }
-.lp .sticker-sym .sticker-bob > span { display: grid; place-items: center; width: clamp(62px, 6vw, 84px); aspect-ratio: 1; border-radius: 22px; background: #fff;
-  border: 3px solid var(--ink); box-shadow: 4px 5px 0 var(--ink); }
-.lp .sticker-sym img { width: 62%; height: auto; }
 
 .lp .beat-2-row { display: flex; align-items: center; justify-content: center; font-size: clamp(56px, 9vw, 140px); width: 100%;
   text-shadow: 0 6px 40px rgba(241,239,252,.9); }
@@ -665,10 +649,6 @@ html.lenis, html.lenis body { height: auto; }
   .lp .poster-word { font-size: clamp(120px, 40vw, 220px); }
   .lp .poster-lede { font-size: 15px; padding: 0 8px; }
   .lp .hero-cinema .poster-cta { flex-wrap: wrap; justify-content: center; }
-  .lp .sticker-coin { left: 4%; top: 15%; }
-  .lp .sticker-flag { right: 5%; top: 14%; }
-  .lp .sticker-sym, .lp .sticker-usd { display: none; }
-  .lp .sticker-spei { left: 4%; bottom: auto; top: 62%; }
 
   .lp .story-grid { grid-template-columns: 1fr; gap: 18px; }
   .lp .story-copy .sec-title, .lp .story-copy .sec-tag { display: none; }
@@ -725,7 +705,6 @@ html.lenis, html.lenis body { height: auto; }
   .lp .atmos .glow, .lp .atmos .grain { animation: none; }
   .lp .relief, .lp .relief-pulse, .lp .live-dot, .lp .scroll-hint i::after, .lp .am-pulse .ic { animation: none !important; }
   .lp .phone-tilt { transition: none; transform: none !important; }
-  .lp .sticker-bob { animation: none; }
   .lp .btn-primary::before { display: none; }
 }
 

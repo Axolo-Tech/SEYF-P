@@ -28,7 +28,7 @@ const ARCS = [
 const weave = (y: number, lift: number) => lift * 0.1 * Math.tanh(-y / 0.3);
 
 /** Relieve procedural: puntos suaves repetibles, para que la luz "rasque" la superficie. */
-function makeBumpTexture(size = 256) {
+export function makeBumpTexture(size = 256) {
   const c = document.createElement("canvas");
   c.width = c.height = size;
   const g = c.getContext("2d")!;
