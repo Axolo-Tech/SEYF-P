@@ -18,10 +18,15 @@ const spaceGrotesk = localFont({
   display: "swap",
 });
 
-// URL pública para metadatos (OG, canonical). En producción se fija con
-// NEXT_PUBLIC_SITE_URL; si falta, se usa el dominio que inyecta la plataforma
-// (Railway: RAILWAY_PUBLIC_DOMAIN; Vercel: VERCEL_URL, mientras siga activo).
-const platformDomain = process.env.RAILWAY_PUBLIC_DOMAIN || process.env.VERCEL_URL;
+// letra condensada para titulares tipo póster de la landing; solo se descarga donde se usa
+const anton = localFont({
+  variable: "--font-poster",
+  src: "./fonts/Anton-latin.woff2",
+  weight: "400",
+  display: "swap",
+  preload: false,
+});
+
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
   (platformDomain ? `https://${platformDomain}` : "http://localhost:3000");
@@ -66,7 +71,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" data-scroll-behavior="smooth" className={`${manrope.variable} ${spaceGrotesk.variable}`}>
+    <html lang="es" data-scroll-behavior="smooth" className={`${manrope.variable} ${spaceGrotesk.variable} ${anton.variable}`}>
       <body>{children}</body>
     </html>
   );
