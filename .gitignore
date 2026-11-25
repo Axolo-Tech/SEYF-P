@@ -15,6 +15,7 @@
 
 # next.js
 /.next/
+/.next-demo/
 /out/
 
 # production
@@ -79,3 +80,8 @@ docs/reyf-demo.mp4
 # soroban
 soroban/target/
 soroban/**/test_snapshots/
+
+# reels: videos generados (se regeneran con docs/reels)
+/docs/reels/clips/
+/docs/reels/out/
+/docs/reels/__pycache__/

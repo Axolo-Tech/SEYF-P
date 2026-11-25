@@ -13,6 +13,7 @@ import {
   AnimatePresence,
   motion,
   useAnimationFrame,
+  useInView,
   useMotionValue,
   useMotionValueEvent,
   useReducedMotion,
@@ -31,6 +32,7 @@ import { LangProvider, LangSwitch, useI18n } from "./i18n";
 
 // three.js solo en el navegador y fuera del bundle inicial
 const Symbol3D = dynamic(() => import("@/components/brand/Symbol3D"), { ssr: false });
+const FoamTube = dynamic(() => import("@/components/brand/FoamTube"), { ssr: false });
 const CoinsLayer = dynamic(() => import("./CoinsLayer"), { ssr: false });
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -316,19 +318,24 @@ function HeroCinema() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const p = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.4 });
 
-  const b1o = useTransform(p, [0, 0.2, 0.3], [1, 1, 0]);
-  const b1y = useTransform(p, [0, 0.3], [0, -80]);
+  const b1o = useTransform(p, [0, 0.18, 0.3], [1, 1, 0]);
+  const b1y = useTransform(p, [0, 0.3], [0, -60]);
+  const b1s = useTransform(p, [0, 0.3], [1, 1.18]);
   const b2o = useTransform(p, [0.32, 0.37, 0.58, 0.63], [0, 1, 1, 0]);
   const b2s = useTransform(p, [0.32, 0.4], [0.94, 1]);
   const b3o = useTransform(p, [0.66, 0.76, 1], [0, 1, 1]);
   const b3y = useTransform(p, [0.66, 0.78], [60, 0]);
-  // --k: 1 = símbolo a la derecha (junto al texto), 0 = centrado; vuelve a la derecha en el beat 3
-  const k = useTransform(p, [0, 0.26, 0.4, 0.6, 0.74], [1, 1, 0, 0, 1]);
-  // en el beat 2 el símbolo se encoge para caber entre "Rinde" y "diario"
-  const symScaleDesk = useTransform(p, [0.26, 0.38, 0.6, 0.74], [1, 0.58, 0.58, 0.8]);
+  // --k: 0 = centrado (detrás de "SEYF" y entre "Rinde" y "diario"), 1 = a la derecha en el beat 3
+  const k = useTransform(p, [0, 0.6, 0.74], [0, 0, 1]);
+  // beat 1: el símbolo es más grande que "SEYF" y se asoma por todos lados (como póster);
+  // en el beat 2 se encoge para caber entre "Rinde" y "diario"
+  const symScaleDesk = useTransform(p, [0, 0.22, 0.38, 0.6, 0.74], [0.3, 0.3, 0.58, 0.58, 0.8]);
   // móvil: el canvas ajusta el símbolo al ancho, así que de entrada se achica para
   // caber entre la barra y el texto sin taparlos
-  const symScaleMob = useTransform(p, [0.26, 0.38, 0.6, 0.74], [0.66, 0.46, 0.46, 0.6]);
+  const symScaleMob = useTransform(p, [0, 0.22, 0.38, 0.6, 0.74], [0.25, 0.25, 0.46, 0.46, 0.6]);
+  // beat 1 lo protagoniza el tubo de espuma; el símbolo aparece cuando el tubo se recoge
+  const symO = useTransform(p, [0, 0.2, 0.32], [0, 0, 1]);
+  const tubeO = useTransform(p, [0, 0.24, 0.32], [1, 1, 0]);
   const mobile = useMediaQuery("(max-width: 880px)");
   const symScale = mobile ? symScaleMob : symScaleDesk;
   const hint = useTransform(p, [0, 0.06], [1, 0]);
@@ -339,44 +346,51 @@ function HeroCinema() {
     <section className="hero-cinema" ref={ref}>
       <div className="hero-sticky">
         {/* --k mueve el símbolo vía CSS (translateX); la escala va en el hijo para no pisar el transform */}
-        <motion.div className="hero-sym" style={{ "--k": k } as unknown as React.CSSProperties}>
+        {/* tubo de espuma: se dibuja al cargar y se recoge con el scroll */}
+        <motion.div className="hero-tube" style={{ opacity: tubeO }}>
+          <FoamTube progress={p} className="hero-tube-canvas" />
+        </motion.div>
+        <motion.div className="hero-sym" style={{ "--k": k, opacity: symO } as unknown as React.CSSProperties}>
           <motion.div className="hero-sym-inner" style={{ scale: symScale }}>
             <div className="hero-sym-glow" />
-            <Symbol3D progress={p} className="hero-canvas" />
+            <Symbol3D progress={p} className="hero-canvas" intro />
           </motion.div>
         </motion.div>
 
-        {/* Beat 1 — propuesta */}
-        <motion.div className="wrap beat beat-1" style={{ opacity: b1o, y: b1y }}>
-          <div className="hero-copy">
-            <motion.div className="hero-eyebrow" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.15, ease: EASE }}>
-              <span className="live-dot" /> {t.hero.eyebrow}
-            </motion.div>
-            <h1 className="display">
-              {t.hero.words.map((w, i) => (
-                <span className="hero-word-mask" key={i}>
-                  <motion.span
-                    className="hero-word"
-                    initial={{ y: "105%" }}
-                    animate={{ y: 0 }}
-                    transition={{ duration: 0.9, delay: 0.25 + i * 0.06, ease: EASE }}
-                  >
-                    {w}
-                  </motion.span>
-                </span>
-              ))}
-            </h1>
-            <motion.p className="lede" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.75, ease: EASE }}>
-              {t.hero.lede}
-            </motion.p>
-            <motion.div className="hero-cta" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.9, ease: EASE }}>
-              <Link className="btn btn-primary btn-lg magnetic" href="/app">
-                {t.hero.cta}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-              </Link>
-              <a className="hero-link" href="#producto">{t.hero.how}</a>
-            </motion.div>
-          </div>
+        {/* Beat 1 — póster: SEYF gigante sobre el tubo de espuma */}
+        <motion.div className="beat beat-1 hero-poster" style={{ opacity: b1o, y: b1y, scale: b1s }}>
+          <h1 className="poster-word" aria-label="SEYF">
+            {"SEYF".split("").map((c, i) => (
+              <span className="poster-mask" key={i} aria-hidden>
+                <motion.span
+                  initial={{ y: "110%", rotate: 6 }}
+                  animate={{ y: 0, rotate: 0 }}
+                  transition={{ duration: 1, delay: 0.2 + i * 0.07, ease: EASE }}
+                >
+                  {c}
+                </motion.span>
+              </span>
+            ))}
+          </h1>
+          <p className="poster-tag display">
+            <motion.span initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.6, ease: EASE }}>
+              {t.hero.tagline[0]}
+            </motion.span>{" "}
+            <motion.span className="poster-tag-b" initial={{ opacity: 0, x: 24, filter: "blur(8px)" }} animate={{ opacity: 1, x: 0, filter: "blur(0px)" }} transition={{ duration: 0.8, delay: 0.95, ease: EASE }}>
+              {t.hero.tagline[1]}
+            </motion.span>
+          </p>
+          <motion.p className="poster-lede" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 1.05, ease: EASE }}>
+            {t.hero.lede}
+          </motion.p>
+          <motion.div className="hero-cta poster-cta" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 1.15, ease: EASE }}>
+            <Link className="btn btn-ink btn-pill" href="/app">
+              {t.hero.cta}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M7 17L17 7M9 7h8v8" /></svg>
+            </Link>
+            <a className="btn btn-outline btn-pill" href="#producto">{t.hero.how}</a>
+          </motion.div>
+
         </motion.div>
 
         {/* Beat 2 — rendimiento */}
@@ -392,7 +406,7 @@ function HeroCinema() {
             <div className="float-card">
               <div className="k"><span className="live-dot" /> {t.hero.earnedToday}</div>
               {/* ilustrativo: solo anima el contador, no promete una tasa */}
-              <div className="v"><GrowingAmount base={12.4} apy={9} size={30} align="left" color="var(--accent)" prefix="+$" tail={2} id="lp-ganado" /></div>
+              <div className="v"><GrowingAmount base={12.4} apy={9} size={30} align="left" color="#3F7A00" prefix="+$" tail={2} id="lp-ganado" /></div>
             </div>
             <div className="float-card">
               <div className="k">{t.hero.withdrawK}</div>
@@ -849,7 +863,7 @@ function LiveActivity() {
 
 // el rol de cada aliado está en t.partners.roles (mismo orden)
 const PARTNERS = [
-  { name: "Stellar", logo: "/partners/stellar.svg", h: 30, url: "https://stellar.org", color: "#ffffff" },
+  { name: "Stellar", logo: "/partners/stellar.svg", h: 30, url: "https://stellar.org", color: "#8B5CF6" },
   { name: "DeFindex", logo: "/partners/defindex.svg", h: 30, url: "https://defindex.io", color: "#DEC9F4" },
   { name: "Pollar", logo: "/partners/pollar.png", h: 22, url: "https://pollar.xyz", color: "#6c8cff" },
   { name: "Etherfuse", logo: "/partners/etherfuse.svg", h: 24, url: "https://www.etherfuse.com", color: "#C8FF4D" },
@@ -938,6 +952,113 @@ function SecurityStack() {
 }
 
 /* ---------- landing ---------- */
+/** Hoja: la sección sube con esquinas redondeadas y tapa a la anterior. El fondo
+    es una capa aparte que se ensancha al entrar (solo transform, sin repintar). */
+function Sheet({ tone, children }: { tone: "white" | "lilac" | "lime" | "ink"; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "start 0.15"] });
+  const sx = useTransform(scrollYProgress, [0, 1], [0.9, 1]);
+  return (
+    <div className={`sheet sheet-${tone}`} ref={ref}>
+      <motion.div className="sheet-bg" style={{ scaleX: sx }} aria-hidden />
+      <div className="sheet-body">{children}</div>
+    </div>
+  );
+}
+
+/** Selector con pestañas: Ahorra / Adelanta / Retira. Rota solo mientras se ve,
+    hasta que tocas una pestaña. */
+function WaysTabs() {
+  const { t } = useI18n();
+  const w = t.ways;
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { amount: 0.45 });
+  const [i, setI] = useState(0);
+  const [auto, setAuto] = useState(true);
+  useEffect(() => {
+    if (!auto || !inView) return;
+    const id = setInterval(() => setI((v) => (v + 1) % 3), 6000);
+    return () => clearInterval(id);
+  }, [auto, inView]);
+  const panel = w.panels[i];
+  const a = w.art;
+  const art = [
+    <div className="ways-card" key="s">
+      <span className="wc-k">{a.saving}</span>
+      <span className="wc-v num">$25,000.00</span>
+      <div className="wc-row">
+        <span className="wc-k"><span className="live-dot" /> {a.earned}</span>
+        <GrowingAmount base={6.85} apy={9} size={22} align="left" color="#C8FF4D" prefix="+$" tail={2} id="lp-ways" />
+      </div>
+      <span className="wc-chip">{a.daily}</span>
+    </div>,
+    <div className="ways-card" key="a">
+      <span className="wc-k">{a.advance}</span>
+      <span className="wc-v num">$850.00</span>
+      <div className="wc-bar"><motion.i initial={{ scaleX: 0 }} animate={{ scaleX: 0.62 }} transition={{ duration: 1.1, delay: 0.25, ease: EASE }} /></div>
+      <div className="wc-row"><span className="wc-k">{a.backing}</span><span className="wc-chip wc-chip-v">{a.locked}</span></div>
+    </div>,
+    <div className="ways-card" key="r">
+      <span className="wc-k">{a.spei}</span>
+      <span className="wc-v num">−$2,500.00</span>
+      <div className="wc-row"><span className="wc-k">{a.to}</span></div>
+      <span className="wc-chip wc-ok">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12l5 5L20 7" /></svg>
+        {a.arrived}
+      </span>
+    </div>,
+  ][i];
+  return (
+    <section className="sec-pad ways" id="usos" ref={ref}>
+      <div className="wrap">
+        <SecHead center tag={w.tag} title={w.title} />
+        <div className="ways-tabs" role="tablist">
+          {w.tabs.map((label, k) => (
+            <button
+              key={label}
+              role="tab"
+              aria-selected={i === k}
+              className={`ways-tab${i === k ? " on" : ""}`}
+              onClick={() => {
+                setI(k);
+                setAuto(false);
+              }}
+            >
+              {i === k && <motion.span layoutId="ways-pill" className="ways-pill" transition={{ type: "spring", stiffness: 400, damping: 34 }} />}
+              <span className="ways-tab-l">{label}</span>
+            </button>
+          ))}
+        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={i}
+            className={`ways-panel ways-${i}`}
+            role="tabpanel"
+            initial={{ opacity: 0, y: 26 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -18 }}
+            transition={{ duration: 0.5, ease: EASE }}
+          >
+            <div className="ways-art">
+              <motion.div initial={{ rotate: -6, scale: 0.9 }} animate={{ rotate: i === 1 ? 3 : -3, scale: 1 }} transition={{ type: "spring", stiffness: 180, damping: 16 }}>
+                {art}
+              </motion.div>
+            </div>
+            <div className="ways-copy">
+              <h3 className="display">{panel.h}</h3>
+              <p>{panel.p}</p>
+              <Link className="btn btn-ink btn-pill" href="/app">
+                {panel.cta}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M7 17L17 7M9 7h8v8" /></svg>
+              </Link>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </section>
+  );
+}
+
 export default function Landing() {
   return (
     <LangProvider>
@@ -1068,11 +1189,12 @@ function LandingInner() {
           <span className="it"><span className="flag"><FlagCO /></span> {t.bonds.countries.co} · TES 9.60%</span>
           <span className="it"><span className="flag"><FlagEU /></span> {t.bonds.countries.eu} · Bonos UE 3.40%</span>
           <span className="it"><span className="flag"><FlagKR /></span> {t.bonds.short.kr} · KTB 3.35%</span>
-          <span className="it" style={{ color: "var(--accent)" }}>{t.marqueeFx}</span>
+          <span className="it it-fx">{t.marqueeFx}</span>
         </VelocityMarquee>
 
         <Manifesto />
 
+        <Sheet tone="white">
         <PhoneStory />
 
         {/* STATS — hechos del producto */}
@@ -1094,7 +1216,17 @@ function LandingInner() {
           </div>
         </section>
 
-        <BondsRail />
+        </Sheet>
+
+        <Sheet tone="lilac">
+          <BondsRail />
+        </Sheet>
+
+        <Sheet tone="lime">
+          <WaysTabs />
+        </Sheet>
+
+        <Sheet tone="white">
 
         {/* ALIADOS */}
         <section className="sec-pad" id="aliados">
@@ -1119,8 +1251,13 @@ function LandingInner() {
           </div>
         </section>
 
-        <QuotePin />
+        </Sheet>
 
+        <Sheet tone="ink">
+          <QuotePin />
+        </Sheet>
+
+        <Sheet tone="white">
         <LiveActivity />
 
         <SecurityStack />
@@ -1145,6 +1282,9 @@ function LandingInner() {
           </div>
         </section>
 
+        </Sheet>
+
+        <Sheet tone="lilac">
         {/* FINAL CTA */}
         <section className="sec-pad" id="descargar">
           <div className="wrap">
@@ -1187,6 +1327,7 @@ function LandingInner() {
             </div>
           </div>
         </footer>
+        </Sheet>
       </main>
     </div>
   );

@@ -1,12 +1,18 @@
 import type { NextConfig } from "next";
 import path from "path";
 
+const demo = process.env.SEYF_DEMO === "1";
+
 const nextConfig: NextConfig = {
   // Fija la raíz del workspace a este proyecto (evita que Next infiera un
   // lockfile externo cuando hay varios package-lock.json en el sistema).
   turbopack: {
     root: path.join(__dirname),
+    // SEYF_DEMO=1: sesión y saldos falsos para grabar videos de la app (src/demo).
+    ...(demo ? { resolveAlias: { "@pollar/react": "./src/demo/pollar-react.tsx" } } : {}),
   },
+  // el servidor demo compila aparte para no pisar el .next del servidor normal
+  ...(demo ? { distDir: ".next-demo" } : {}),
   // Clientes con JS en caché aún llaman /api/soroswap/*; los mandamos al agregador
   // nativo /api/swap/* (antes apuntaban a /api/sdex/{quote,build}, que ya no existen → 404).
   async rewrites() {
