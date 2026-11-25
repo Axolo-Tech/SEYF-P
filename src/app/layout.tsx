@@ -29,7 +29,7 @@ const anton = localFont({
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+  (platformDomain ? `https://${platformDomain}` : "http://localhost:3000");
 
 const title = "SEYF — Super app de finanzas";
 const description =

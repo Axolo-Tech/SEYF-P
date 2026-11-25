@@ -70,14 +70,16 @@ export type EtherfuseConfig = {
 /**
  * Si es true, aplicamos checklist completo (webhook + ramp): producción “real”.
  *
- * En Vercel, `NODE_ENV` es `production` también en **preview** (`VERCEL_ENV=preview`),
- * donde no quieres bloquear KYC por falta de secret de webhook en variables.
- *
- * @see https://vercel.com/docs/projects/environment-variables/system-environment-variables
+ * `NODE_ENV` es `production` en cualquier build desplegado, también en entornos
+ * de prueba (staging, previews), donde no quieres exigir la configuración
+ * completa de producción (hoy, `SEYF_ALLOW_ETHERFUSE_RAMP=true`). El entorno se declara con `SEYF_DEPLOY_ENV`
+ * (`production` | `preview` | `development`), independiente de la plataforma.
+ * Mientras Vercel siga activo se respeta también `VERCEL_ENV`.
+ * Sin ninguna de las dos, un build de producción se trata como producción.
  */
 export function strictEtherfuseProductionConfig(): boolean {
   if (process.env.NODE_ENV !== "production") return false;
-  const v = process.env.VERCEL_ENV;
+  const v = process.env.SEYF_DEPLOY_ENV?.trim() || process.env.VERCEL_ENV;
   if (v === "preview" || v === "development") return false;
   return true;
 }

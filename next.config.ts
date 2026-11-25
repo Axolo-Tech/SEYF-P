@@ -23,12 +23,17 @@ const nextConfig: NextConfig = {
     ];
   },
   // SEP-1: el stellar.toml debe servirse con CORS abierto para que wallets y
-  // anclas puedan leerlo desde otro origen.
+  // anclas puedan leerlo desde otro origen, y como text/plain (docs de Stellar,
+  // "Publishing asset info"). Sin el Content-Type explícito, `next start` lo
+  // sirve como application/octet-stream.
   async headers() {
     return [
       {
         source: "/.well-known/stellar.toml",
-        headers: [{ key: "Access-Control-Allow-Origin", value: "*" }],
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Content-Type", value: "text/plain; charset=utf-8" },
+        ],
       },
     ];
   },
