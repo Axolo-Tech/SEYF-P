@@ -27,6 +27,10 @@ const anton = localFont({
   preload: false,
 });
 
+// URL pública para metadatos (OG, canonical). En producción se fija con
+// NEXT_PUBLIC_SITE_URL; si falta, se usa el dominio que inyecta la plataforma
+// (Railway: RAILWAY_PUBLIC_DOMAIN; Vercel: VERCEL_URL, mientras siga activo).
+const platformDomain = process.env.RAILWAY_PUBLIC_DOMAIN || process.env.VERCEL_URL;
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
   (platformDomain ? `https://${platformDomain}` : "http://localhost:3000");
