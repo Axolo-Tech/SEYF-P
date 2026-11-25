@@ -2,7 +2,7 @@
 
 /* SEYF — tubo de espuma del hero (three.js, sin assets externos).
    Un tubo grueso y mate serpentea por toda la pantalla detrás del nombre. El
-   color recorre la marca: violeta → azul → turquesa → lima.
+   color recorre solo la paleta de marca: violeta → morado tinta (casi negro) → lima.
    Al cargar se "dibuja" de punta a punta; con el scroll (`progress` 0→1 del hero)
    la cola se recoge siguiendo la curva hasta desaparecer. El mouse lo inclina.
    Solo pinta cuando está en pantalla; con reduce-motion queda un cuadro fijo. */
@@ -18,10 +18,27 @@ const PATH = [
   [0.5, -0.5, -1.2], [-3.6, -0.3, -0.6], [-5.2, -1.7, 0], [-2.8, -3.0, 0.5], [2.2, -2.7, 0], [9, -3.3, -1],
 ] as const;
 const RADIUS = 0.56;
-// el color avanza por el círculo cromático de violeta (h≈0.72) a lima (h≈0.21) pasando por azul y turquesa
-const H0 = 0.72;
-const H1 = 0.21;
-const colorAt = (u: number, c = new THREE.Color()) => c.setHSL(H0 + (H1 - H0) * u, 0.82, 0.5 - 0.05 * Math.sin(u * Math.PI));
+// paradas de color de la marca (sin azules ni turquesas): violeta → morado tinta → lima.
+// se interpola en espacio lineal entre paradas vecinas para que no se ensucie el tono.
+const STOPS: [number, number][] = [
+  [0.0, 0x8a55f6], // violeta SEYF
+  [0.3, 0x5a1fc4], // violeta profundo
+  [0.5, 0x1a0f2e], // tinta morada, casi negra
+  [0.64, 0x243f0c], // tinta que vira a verde
+  [0.8, 0x9be22a], // lima oscuro
+  [1.0, 0xc8ff4d], // lima SEYF
+];
+const STOP_COLORS = STOPS.map(([, hex]) => new THREE.Color(hex));
+const colorAt = (u: number, c = new THREE.Color()) => {
+  const x = Math.min(1, Math.max(0, u));
+  let i = 0;
+  while (i < STOPS.length - 2 && x > STOPS[i + 1][0]) i++;
+  const [u0] = STOPS[i];
+  const [u1] = STOPS[i + 1];
+  const k = (x - u0) / (u1 - u0);
+  const s = k * k * (3 - 2 * k); // transición suave entre paradas
+  return c.copy(STOP_COLORS[i]).lerp(STOP_COLORS[i + 1], s);
+};
 
 const easeInOut = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 
@@ -58,7 +75,7 @@ export default function FoamTube({ progress, className }: { progress?: MotionVal
     const key = new THREE.DirectionalLight(0xffffff, 2.2);
     key.position.set(-3, 5, 6);
     scene.add(key);
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xb9a4ff, 0.5));
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xc9b8ff, 0.5));
 
     const curve = new THREE.CatmullRomCurve3(PATH.map(([x, y, z]) => new THREE.Vector3(x, y, z)), false, "centripetal");
     const SEG = lite ? 260 : 420;
