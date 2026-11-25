@@ -12,6 +12,7 @@ const TRACKED_KEYS = [
   "SEYF_ALLOW_ETHERFUSE_RAMP",
   "NODE_ENV",
   "VERCEL_ENV",
+  "SEYF_DEPLOY_ENV",
 ];
 
 for (const key of TRACKED_KEYS) {
@@ -116,6 +117,37 @@ describe("getEtherfuseConfig() — unit tests", () => {
     const config = getEtherfuseConfig();
     expect(config.webhookSecret).toBeNull();
     expect(config.allowRamp).toBe(false);
+  });
+
+  it("SEYF_DEPLOY_ENV=preview (staging) no exige la rampa aunque NODE_ENV sea production", () => {
+    process.env.ETHERFUSE_API_KEY = "test-api-key";
+    process.env.NODE_ENV = "production";
+    delete process.env.VERCEL_ENV;
+    process.env.SEYF_DEPLOY_ENV = "preview";
+    process.env.SEYF_ALLOW_ETHERFUSE_RAMP = "false";
+
+    const config = getEtherfuseConfig();
+    expect(config.allowRamp).toBe(false);
+  });
+
+  it("SEYF_DEPLOY_ENV gana sobre VERCEL_ENV", () => {
+    process.env.ETHERFUSE_API_KEY = "test-api-key";
+    process.env.NODE_ENV = "production";
+    process.env.VERCEL_ENV = "preview";
+    process.env.SEYF_DEPLOY_ENV = "production";
+    process.env.SEYF_ALLOW_ETHERFUSE_RAMP = "false";
+
+    expect(() => getEtherfuseConfig()).toThrow("SEYF_ALLOW_ETHERFUSE_RAMP");
+  });
+
+  it("sin SEYF_DEPLOY_ENV ni VERCEL_ENV, un build de producción es estricto", () => {
+    process.env.ETHERFUSE_API_KEY = "test-api-key";
+    process.env.NODE_ENV = "production";
+    delete process.env.VERCEL_ENV;
+    delete process.env.SEYF_DEPLOY_ENV;
+    process.env.SEYF_ALLOW_ETHERFUSE_RAMP = "false";
+
+    expect(() => getEtherfuseConfig()).toThrow("SEYF_ALLOW_ETHERFUSE_RAMP");
   });
 
   it("throws when SEYF_ALLOW_ETHERFUSE_RAMP is not 'true' in production (Req 1.5)", () => {

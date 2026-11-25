@@ -164,6 +164,9 @@ importan Vitest, que no está instalado.
 CI: `.github/workflows/ci.yml` (build y lint), `contracts.yml` (pruebas y wasm
 del contrato) y `keeper.yml` (cron del keeper).
 
+Despliegue: hoy en Vercel; la migración a Railway está preparada en
+`docs/deploy-railway.md`. El entorno se declara con `SEYF_DEPLOY_ENV`.
+
 ## Degradación
 
 Sin Supabase (`NEXT_PUBLIC_USE_SUPABASE` distinto de `"true"`), `store.ts` usa

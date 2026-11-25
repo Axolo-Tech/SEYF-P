@@ -18,9 +18,13 @@ const spaceGrotesk = localFont({
   display: "swap",
 });
 
+// URL pública para metadatos (OG, canonical). En producción se fija con
+// NEXT_PUBLIC_SITE_URL; si falta, se usa el dominio que inyecta la plataforma
+// (Railway: RAILWAY_PUBLIC_DOMAIN; Vercel: VERCEL_URL, mientras siga activo).
+const platformDomain = process.env.RAILWAY_PUBLIC_DOMAIN || process.env.VERCEL_URL;
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+  (platformDomain ? `https://${platformDomain}` : "http://localhost:3000");
 
 const title = "SEYF — Super app de finanzas";
 const description =
