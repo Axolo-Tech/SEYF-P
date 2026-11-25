@@ -83,6 +83,9 @@ Railway no copia variables sealed a los entornos de PR.
 
 - Las `NEXT_PUBLIC_*` se incrustan al compilar: deben estar antes del primer
   build. Railway expone las variables del servicio durante el build.
+- **`SEYF_DEMO` no debe existir en ningún entorno de Railway.** Con `SEYF_DEMO=1`,
+  `next.config.ts` cambia `@pollar/react` por una sesión falsa con saldos de
+  ejemplo (`src/demo/pollar-react.tsx`). Es solo para grabar videos en local.
 - No copies variables de Juno, Bitso Business, Dynerox ni Privy. Esos rieles
   están retirados; el código que queda responde 404 en producción (`src/proxy.ts`).
 - `.env.example` es la plantilla; su alineación con el código es el PR 4A del
