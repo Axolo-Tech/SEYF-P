@@ -23,7 +23,7 @@
   background: var(--surface-2); border: 1px solid var(--line-strong); color: var(--txt); text-align: left; width: 100%;
   font: inherit;
 }
-.save-teaser:active { transform: scale(.99); }
+.save-teaser:active { --ts: .985; }
 .save-teaser .st-copy { flex: 1; min-width: 0; }
 .save-teaser .st-k { margin: 0; font-size: var(--t-xxs); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--txt-dim); }
 .save-teaser .st-t { margin: 6px 0 0; font-size: var(--t-md); font-weight: 800; letter-spacing: -.01em; }
@@ -481,3 +481,14 @@ button.tgl:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px
 .rise { animation: riseIn .6s cubic-bezier(.2,.9,.25,1.15) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
 @keyframes riseIn { from { opacity: 0; transform: translateY(18px) scale(.97); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .rise { animation: none; } }
+
+/* tarjeta que se inclina con brillo (useTilt) */
+.tilt { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(var(--ts, 1));
+  transition: transform .5s cubic-bezier(.2,.9,.25,1.1); transform-style: preserve-3d; will-change: transform; }
+.tilt[data-tilting] { transition: transform .08s linear; }
+.tilt::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 3;
+  background: radial-gradient(circle at var(--gx, 50%) var(--gy, 0%), rgba(255,255,255,.16), transparent 55%);
+  opacity: 0; transition: opacity .35s; mix-blend-mode: soft-light; }
+.tilt[data-tilting]::after { opacity: 1; }
+.tilt:active { --ts: .985; }
+@media (prefers-reduced-motion: reduce) { .tilt { transform: none; transition: none; } .tilt::after { display: none; } }

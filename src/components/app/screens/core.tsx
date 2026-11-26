@@ -30,6 +30,7 @@ import { useSeyfStellarWallet } from "@/lib/seyf/use-seyf-stellar-wallet";
 import { stellarTxExplorerUrl as stellarExplorerTxUrl } from "@/lib/etherfuse/stellar-tx-url";
 import { STELLAR_VAULTS_ENABLED, assetSymbolForPlan } from "@/lib/defindex/vaults";
 import dynamic from "next/dynamic";
+import { useTilt } from "@/hooks/useTilt";
 
 const Brand3D = dynamic(() => import("@/components/brand/Brand3D"), { ssr: false });
 
@@ -91,6 +92,7 @@ let homeCountedUp = false;
 export function ScreenHome({ go }: { go: Go }) {
   const [hide, setHide] = useHideBalance();
   const [showAllAssets, setShowAllAssets] = useState(false);
+  const teaserTilt = useTilt<HTMLButtonElement>();
   const [countUp] = useState(() => !homeCountedUp);
   useEffect(() => {
     homeCountedUp = true;
@@ -262,7 +264,7 @@ export function ScreenHome({ go }: { go: Go }) {
 
         {/* ── 1b. TU AHORRO — tarjeta sólida con barras de crecimiento animadas.
               Sin ahorro todavía, invita a abrir la primera bóveda. ── */}
-        <button type="button" className="save-teaser rise" style={{ "--i": 2 } as React.CSSProperties} onClick={() => go("bovedas")}>
+        <button type="button" ref={teaserTilt} className="save-teaser rise tilt" style={{ "--i": 2 } as React.CSSProperties} onClick={() => go("bovedas")}>
           <div className="st-copy">
             <p className="st-k">Tu ahorro</p>
             {savingsLoading ? (
