@@ -252,18 +252,18 @@ export function ScreenHome({ go }: { go: Go }) {
 
         {/* ── 1a. NUDGE de verificación (no bloquea nada; solo invita) ── */}
         {kyc.enabled && !kyc.loading && !kyc.verified && (
-          <div className="nudge" onClick={() => go("kyc")}>
+          <button type="button" className="nudge" onClick={() => go("kyc")}>
             <span className="ic">
               <Icon name="shield" size={17} />
             </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--txt)" }}>Verifica tu cuenta</p>
-              <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--txt-muted)", lineHeight: 1.4 }}>
+            <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+              <span style={{ display: "block", fontSize: 13, fontWeight: 700, color: "var(--txt)" }}>Verifica tu cuenta</span>
+              <span style={{ display: "block", marginTop: 2, fontSize: 12, color: "var(--txt-muted)", lineHeight: 1.4 }}>
                 Desbloquea mayores depósitos y mejores bóvedas de rendimiento.
-              </p>
-            </div>
+              </span>
+            </span>
             <Icon name="chevR" size={16} color="var(--txt-dim)" />
-          </div>
+          </button>
         )}
 
         {/* ── 1b. TU AHORRO — tarjeta sólida con barras de crecimiento animadas.
