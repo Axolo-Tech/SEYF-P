@@ -1116,7 +1116,7 @@ export function ScreenConvert({ go }: { go: Go }) {
             </div>
             <SwapSelect value={fromCode} onChange={(v) => { setFromCode(v); setStatus("idle"); }} exclude={toCode} assets={assets} />
           </div>
-          <div className="conv-swap" onClick={swap} style={{ cursor: "pointer" }}><Icon name="swap" size={20} /></div>
+          <button type="button" className="conv-swap" onClick={swap} aria-label="Invertir monedas" style={{ cursor: "pointer", font: "inherit", padding: 0 }}><Icon name="swap" size={20} /></button>
           <div className="conv-field">
             <SwapAssetBadge emoji={to?.flag ?? "🪙"} />
             <div style={{ flex: 1, minWidth: 0 }}>
