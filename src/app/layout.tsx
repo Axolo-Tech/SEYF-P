@@ -43,9 +43,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title,
   description,
+  appleWebApp: { capable: true, title: "SEYF", statusBarStyle: "black-translucent" },
   icons: {
     icon: [{ url: "/brand/seyf-favicon.svg", type: "image/svg+xml" }],
-    apple: [{ url: "/brand/seyf-appicon.svg", type: "image/svg+xml" }],
+    // iOS no usa SVG para el ícono de la pantalla de inicio
+    apple: [{ url: "/brand/seyf-apple-touch-180.png", sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
     type: "website",
