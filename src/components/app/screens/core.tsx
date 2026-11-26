@@ -299,7 +299,11 @@ export function ScreenHome({ go }: { go: Go }) {
               <div className="lrow" key={a.code} style={{ cursor: "pointer" }} onClick={() => go("activo", { code: a.code, bal: a.bal })}>
                 <div className="ava" style={{ overflow: "hidden", padding: 0 }}><StellarAssetAvatar code={a.code} /></div>
                 <div className="mid"><p className="ti">{a.code}</p><p className="su">{stellarAssetName(a.code)}</p></div>
-                <div className="amt"><div className="a num">{hide ? "••••" : FMT(a.bal, 2)}</div></div>
+                <div className="amt">
+                  <div className="a num">{hide ? "••••" : FMT(a.bal, 2)}</div>
+                  {/* lo que vale en pesos: el usuario mide todo en MXN */}
+                  {!hide && hasPrice(a.code) && <div className="s num">≈ ${FMT(mxnValueOf(a.code, a.bal), 0)} MXN</div>}
+                </div>
                 <Icon name="chevR" size={16} color="var(--txt-dim)" />
               </div>
             ))}
