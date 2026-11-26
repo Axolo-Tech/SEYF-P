@@ -95,8 +95,11 @@ function useHideBalance() {
   return [hide, setHide] as const;
 }
 
+const ASSETS_PREVIEW = 3;
+
 export function ScreenHome({ go }: { go: Go }) {
   const [hide, setHide] = useHideBalance();
+  const [showAllAssets, setShowAllAssets] = useState(false);
   const [modal, setModal] = useState<null | "deposit" | "send" | "more">(null);
   const wallet = useWallet();
   const stellar = useSeyfStellarWallet();
@@ -292,10 +295,19 @@ export function ScreenHome({ go }: { go: Go }) {
           <>
           <div className="sec-head" style={{ marginTop: 22, marginBottom: 8 }}>
             <h3>Disponible en tu wallet</h3>
+            {stellarAssets.length > ASSETS_PREVIEW && (
+              <button type="button" className="chip" onClick={() => setShowAllAssets(!showAllAssets)} aria-expanded={showAllAssets}>
+                {showAllAssets ? "Ver menos" : `Ver todos (${stellarAssets.length})`}
+              </button>
+            )}
           </div>
           <div className="card" style={{ padding: "4px 18px" }}>
-            {/* Solo activos on-chain de Stellar. Cada uno abre su pantalla de detalle. */}
-            {stellarAssets.map((a) => (
+            {/* Solo activos on-chain de Stellar, del que más vale en pesos al que menos.
+                En el celular se muestran 3 para no alargar el Inicio. */}
+            {[...stellarAssets]
+              .sort((x, y) => mxnValueOf(y.code, y.bal) - mxnValueOf(x.code, x.bal))
+              .slice(0, showAllAssets ? undefined : ASSETS_PREVIEW)
+              .map((a) => (
               <div className="lrow" key={a.code} style={{ cursor: "pointer" }} onClick={() => go("activo", { code: a.code, bal: a.bal })}>
                 <div className="ava" style={{ overflow: "hidden", padding: 0 }}><StellarAssetAvatar code={a.code} /></div>
                 <div className="mid"><p className="ti">{a.code}</p><p className="su">{stellarAssetName(a.code)}</p></div>
