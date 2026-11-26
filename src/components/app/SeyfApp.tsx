@@ -127,12 +127,35 @@ export default function SeyfApp() {
   const [loggingIn, setLoggingIn] = useState(false);
   const [route, setRoute] = useState<{ screen: Screen; ctx: unknown }>({ screen: "home", ctx: null });
 
-  const go = useCallback<Go>((screen, ctx = null) => {
-    setRoute({ screen, ctx });
+  // Cada pantalla entra al historial del navegador: así el botón o gesto de
+  // "atrás" del celular regresa a la pantalla anterior en vez de cerrar la app.
+  // El `ctx` puede no ser clonable, por eso vive en memoria y el historial solo
+  // guarda su índice.
+  const entries = useRef<{ screen: Screen; ctx: unknown }[]>([{ screen: "home", ctx: null }]);
+
+  const scrollTop = () =>
     requestAnimationFrame(() => {
       const el = document.querySelector(".screen");
       if (el) el.scrollTop = 0;
     });
+
+  const go = useCallback<Go>((screen, ctx = null) => {
+    setRoute({ screen, ctx });
+    entries.current.push({ screen, ctx });
+    window.history.pushState({ seyf: entries.current.length - 1 }, "");
+    scrollTop();
+  }, []);
+
+  useEffect(() => {
+    window.history.replaceState({ ...(window.history.state ?? {}), seyf: 0 }, "");
+    const onPop = (e: PopStateEvent) => {
+      const idx = (e.state as { seyf?: number } | null)?.seyf;
+      const entry = idx != null ? entries.current[idx] : undefined;
+      setRoute(entry ?? { screen: "home", ctx: null });
+      scrollTop();
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
   }, []);
 
   // Gatear por la sesión real de Pollar: sin wallet Stellar no hay app.
