@@ -181,7 +181,7 @@ export function ScreenHome({ go }: { go: Go }) {
       <div className="screen-pad">
 
         {/* ── 1. SALDO: grande y sin caja; acciones en píldoras ── */}
-        <div className="home-bal">
+        <div className="home-bal rise" style={{ "--i": 0 } as React.CSSProperties}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <p className="eyebrow">{hasVault ? "Patrimonio total" : "Saldo disponible · MXN"}</p>
             <button className="icon-btn hit-44" style={{ width: 32, height: 32 }} onClick={() => setHide(!hide)} aria-label={hide ? "Mostrar saldo" : "Ocultar saldo"} aria-pressed={hide}>
@@ -240,7 +240,7 @@ export function ScreenHome({ go }: { go: Go }) {
 
         {/* ── 1a. NUDGE de verificación (no bloquea nada; solo invita) ── */}
         {kyc.enabled && !kyc.loading && !kyc.verified && (
-          <button type="button" className="nudge" onClick={() => go("kyc")}>
+          <button type="button" className="nudge rise" style={{ "--i": 1 } as React.CSSProperties} onClick={() => go("kyc")}>
             <span className="ic">
               <Icon name="shield" size={17} />
             </span>
@@ -256,7 +256,7 @@ export function ScreenHome({ go }: { go: Go }) {
 
         {/* ── 1b. TU AHORRO — tarjeta sólida con barras de crecimiento animadas.
               Sin ahorro todavía, invita a abrir la primera bóveda. ── */}
-        <button type="button" className="save-teaser" onClick={() => go("bovedas")}>
+        <button type="button" className="save-teaser rise" style={{ "--i": 2 } as React.CSSProperties} onClick={() => go("bovedas")}>
           <div className="st-copy">
             <p className="st-k">Tu ahorro</p>
             {savingsLoading ? (
@@ -327,7 +327,7 @@ export function ScreenHome({ go }: { go: Go }) {
 
         {/* ── 2. MOVIMIENTOS ── */}
         {/* Hoja de vidrio que "sube" sobre el fondo, como en las referencias */}
-        <div className="sheet-panel">
+        <div className="sheet-panel rise" style={{ "--i": 4 } as React.CSSProperties}>
           <div className="sp-grab" />
           <div className="sp-head">
             <h3>Movimientos</h3>
