@@ -85,10 +85,16 @@ export const stellarAssetName = (code: string): string => STELLAR_ASSET_INFO[cod
 
 /* ---------------- HOME (patrimonio + balance MXNB en vivo) ---------------- */
 const ASSETS_PREVIEW = 3;
+// El saldo cuenta hacia arriba solo la primera vez que se abre el Inicio en la sesión.
+let homeCountedUp = false;
 
 export function ScreenHome({ go }: { go: Go }) {
   const [hide, setHide] = useHideBalance();
   const [showAllAssets, setShowAllAssets] = useState(false);
+  const [countUp] = useState(() => !homeCountedUp);
+  useEffect(() => {
+    homeCountedUp = true;
+  }, []);
   const [modal, setModal] = useState<null | "deposit" | "send" | "more">(null);
   const wallet = useWallet();
   const stellar = useSeyfStellarWallet();
@@ -207,7 +213,7 @@ export function ScreenHome({ go }: { go: Go }) {
             <div style={{ marginTop: 14 }}>
               {/* Número grande = patrimonio (crece a la tasa efectiva). Sin bóveda,
                   es el disponible puro y no crece. Mismo tamaño (56) que Ahorro. */}
-              <GrowingAmount base={hasVault ? patrimonio : pesos} apy={blendedApy} size={heroAmountSize(hasVault ? patrimonio : pesos)} align="left" id="home-patrimonio" />
+              <GrowingAmount base={hasVault ? patrimonio : pesos} apy={blendedApy} size={heroAmountSize(hasVault ? patrimonio : pesos)} align="left" id="home-patrimonio" countUpOnMount={countUp} />
             </div>
           )}
           {hasVault && !hide && !heroLoading && (
