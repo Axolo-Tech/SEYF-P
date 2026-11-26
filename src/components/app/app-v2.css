@@ -384,6 +384,14 @@
 .adv-banner .ah-k { position: relative; margin: 10px 0 0; font-size: 11.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.75); }
 .adv-banner .ah-t { position: relative; margin: 8px auto 0; max-width: 290px; font-size: 25px; font-weight: 800; letter-spacing: -.03em; line-height: 1.15; }
 .adv-banner .ah-s { position: relative; margin: 10px auto 0; max-width: 290px; font-size: 13.5px; line-height: 1.45; color: rgba(255,255,255,.8); }
+/* celular: héroe más bajo para que el formulario del adelanto se vea sin tanto scroll */
+@media (max-width: 480px) {
+  .adv-banner { padding: 16px 18px 18px; border-radius: 26px; }
+  .adv-banner .ah-coin .adv-bolt { width: 56px; height: 56px; }
+  .adv-banner .ah-k { margin-top: 4px; }
+  .adv-banner .ah-t { font-size: 21px; margin-top: 6px; }
+  .adv-banner .ah-s { font-size: 12.5px; margin-top: 6px; }
+}
 .adv-steps { display: grid; gap: 0; margin-top: 18px; padding: 4px 16px; border-radius: 22px; background: var(--surface-2); border: 1px solid var(--line); }
 .adv-steps > div { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
 .adv-steps > div:last-child { border-bottom: 0; }
