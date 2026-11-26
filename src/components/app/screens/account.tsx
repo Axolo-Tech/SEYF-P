@@ -412,14 +412,16 @@ export function ScreenNotifs({ go }: { go: Go }) {
 }
 
 function SecRow({ icon, t, right, last, danger, onClick }: { icon: string; t: string; right?: React.ReactNode; last?: boolean; danger?: boolean; onClick?: () => void }) {
+  const Row = onClick ? "button" : "div";
   return (
-    <div className="lrow" onClick={onClick} style={{ padding: "12px 12px", borderBottom: last ? "none" : "1px solid var(--line)", cursor: onClick ? "pointer" : undefined }}>
+    // Con acción es un botón (teclado, lector de pantalla y respuesta al toque); sin ella, solo una fila.
+    <Row {...(onClick ? { type: "button" as const, onClick } : {})} className={onClick ? "lrow lrow-btn" : "lrow"} style={{ padding: "12px 12px", borderBottom: last ? "none" : "1px solid var(--line)", cursor: onClick ? "pointer" : "default" }}>
       <span style={{ width: 38, height: 38, borderRadius: 11, background: danger ? "rgba(255,122,122,.13)" : "var(--surface-2)", color: danger ? "var(--neg)" : "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: "1px solid var(--line)" }}>
         <Icon name={icon} size={19} />
       </span>
       <div style={{ flex: 1, fontWeight: 700, fontSize: 15, color: danger ? "var(--neg)" : "var(--txt)" }}>{t}</div>
       {right}
-    </div>
+    </Row>
   );
 }
 
