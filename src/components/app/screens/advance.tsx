@@ -58,11 +58,15 @@ export function ScreenAdvance({ go }: { go: Go }) {
           <p className="ah-t">Cobra hoy los intereses de tu ahorro.</p>
           <p className="ah-s">Sin tocar tu capital. Se paga solo con lo que tu ahorro va generando.</p>
         </div>
-        <div className="adv-steps">
-          <div><span className="n">1</span><p><b>Elige el plazo</b>Ves el monto exacto antes de confirmar.</p></div>
-          <div><span className="n">2</span><p><b>Tu ahorro sigue rindiendo</b>Queda apartado como garantía, sin moverse.</p></div>
-          <div><span className="n">3</span><p><b>Se paga solo</b>Con tus intereses, o lo repagas antes si quieres.</p></div>
-        </div>
+        {/* Los pasos se pliegan: en el celular empujaban el formulario fuera de la pantalla. */}
+        <details className="adv-how">
+          <summary>¿Cómo funciona? <Icon name="chevR" size={15} /></summary>
+          <div className="adv-steps">
+            <div><span className="n">1</span><p><b>Elige el plazo</b>Ves el monto exacto antes de confirmar.</p></div>
+            <div><span className="n">2</span><p><b>Tu ahorro sigue rindiendo</b>Queda apartado como garantía, sin moverse.</p></div>
+            <div><span className="n">3</span><p><b>Se paga solo</b>Con tus intereses, o lo repagas antes si quieres.</p></div>
+          </div>
+        </details>
 
         {ctx ? (
           <AdelantoScreen ctx={ctx} />

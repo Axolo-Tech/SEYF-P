@@ -448,3 +448,12 @@
 .offline-bar { position: fixed; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top, 0px) + 8px); z-index: 60;
   display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; white-space: nowrap;
   font-size: 12.5px; font-weight: 700; color: #0A0A0F; background: #FFD66B; box-shadow: 0 10px 30px -10px rgba(0,0,0,.6); }
+
+/* "¿Cómo funciona?" del Adelanto: pasos plegables */
+.adv-how { margin-top: 14px; }
+.adv-how > summary { list-style: none; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 4px;
+  font-size: 13.5px; font-weight: 800; color: var(--txt-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.adv-how > summary::-webkit-details-marker { display: none; }
+.adv-how > summary svg { transition: transform .2s; }
+.adv-how[open] > summary svg { transform: rotate(90deg); }
+.adv-how .adv-steps { margin-top: 4px; }
