@@ -201,3 +201,17 @@ segundo se verificó `open_advance` → `settle` → `repay` contra el mismo vau
 ([settle 04962da3…](https://stellar.expert/explorer/testnet/tx/04962da3371adfe529e265e5c5ea9f8f3ff8ab9c109cb62b53a8de46363282ae)).
 En el primero queda abierta una posición de prueba de `seyf-tn-user1` que vence
 el 26 de octubre a las 13:52 UTC.
+
+## Bóveda Ship It (`seyf_boveda`, testnet) — reto exprés 2026-11-26
+
+Contrato de reto, **solo testnet**: guarda 5555 XLM y los entrega completos a
+quien llame `claim(to, code)` con el código «Ship It» (el contrato guarda solo
+el SHA-256 `7121f6ba…99e66e`). Pantalla pública: `/boveda` (Freighter en Testnet).
+
+| Dato | Valor |
+|---|---|
+| Contrato | `CC4IIPUIBFRGNLWM5XGPJP4OQWBFR5MUGALOFWXHBKPL357HMK5AIIJ2` ([stellar.expert](https://stellar.expert/explorer/testnet/contract/CC4IIPUIBFRGNLWM5XGPJP4OQWBFR5MUGALOFWXHBKPL357HMK5AIIJ2)) |
+| Token | SAC de XLM nativo `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC` |
+| Admin (`withdraw`) | `GCXIDWJ7UYKT5OL55MFMXVLBDLT6Y5FEZOBUCK5LJODQ64HRX6O4XUPK` (alias local `seyf-boveda-tn`) |
+| Deploy | [b16a04de…](https://stellar.expert/explorer/testnet/tx/b16a04de67683afb76bcebc80f978d29330ee3e31a33d4b177d4c7aa6bcaa6b5) (12:3x CST) |
+| Prueba de reclamo | [b86fd20f…](https://stellar.expert/explorer/testnet/tx/b86fd20f51eaf4f2065a969530166c2e01612ab21fa74937fcf5402515329a53): cuenta desechable recibió 5555 XLM; luego se volvió a fondear con 5555 desde `GBJGGPEE…7ONY` (`seyf-boveda-tn2`) |
