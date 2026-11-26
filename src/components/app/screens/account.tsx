@@ -349,8 +349,9 @@ export function ScreenProfile({ go }: { go: Go }) {
 
         <p className="eyebrow" style={{ margin: "26px 0 12px" }}>Cuenta</p>
         <div className="card" style={{ padding: 6 }}>
-          <SecRow icon="doc" t="Documentos y estados de cuenta" right={<Icon name="chevR" size={16} color="var(--txt-dim)" />} />
-          <SecRow icon="headset" t="Soporte 24/7" right={<Icon name="chevR" size={16} color="var(--txt-dim)" />} />
+          {/* Sin flecha si aún no lleva a ningún lado: antes parecía un botón y no hacía nada. */}
+          <SecRow icon="doc" t="Documentos y estados de cuenta" right={<span style={{ fontSize: 12, fontWeight: 700, color: "var(--txt-dim)" }}>Próximamente</span>} />
+          <SecRow icon="headset" t="Soporte" right={<Icon name="chevR" size={16} color="var(--txt-dim)" />} onClick={() => window.open("/soporte", "_blank", "noopener")} />
           <SecRow icon="logout" t="Cerrar sesión" right={<Icon name="chevR" size={16} color="var(--txt-dim)" />} danger last onClick={wallet.enabled ? wallet.logout : undefined} />
         </div>
       </div>
