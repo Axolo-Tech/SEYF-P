@@ -206,7 +206,9 @@ button.nudge:focus-visible { outline: 2px solid var(--accent); outline-offset: 2
   color: rgba(244,242,251,.62); transition: background .25s, color .25s, padding .25s;
 }
 .tabbar-v3 .tab .lb { font-size: 13.5px; font-weight: 800; max-width: 0; overflow: hidden; white-space: nowrap; transition: max-width .3s; }
-.tabbar-v3 .tab.active { background: #fff; color: #0A0A0F; padding: 0 18px 0 14px; }
+.tabbar-v3 .tab { position: relative; isolation: isolate; }
+.tabbar-v3 .tab.active { color: #0A0A0F; padding: 0 18px 0 14px; }
+.tabbar-v3 .tab-pill { position: absolute; inset: 0; z-index: -1; border-radius: 999px; background: #fff; }
 .tabbar-v3 .tab.active .lb { max-width: 90px; }
 
 /* ---------- Inicio: saldo sin caja, acciones en píldora ---------- */

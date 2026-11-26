@@ -4,6 +4,7 @@
    Gating por sesión: onboarding → login (Pollar: correo + código) → app. */
 import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { usePollar } from "@pollar/react";
+import { motion } from "motion/react";
 import { Icon } from "./ui";
 import type { Go, Screen } from "./nav";
 import { Onboarding, ScreenHome, ScreenWallet, ScreenTxnDetail } from "./screens/core";
@@ -33,6 +34,8 @@ function TabBar({ screen, go }: { screen: Screen; go: Go }) {
         const active = t.match.includes(screen);
         return (
           <button key={t.id} className={`tab ${active ? "active" : ""}`} onClick={() => { if (!active) haptic(); go(t.screen); }} aria-current={active ? "page" : undefined} aria-label={t.lb}>
+            {/* píldora blanca compartida: se desliza a la pestaña nueva (layoutId) */}
+            {active && <motion.span layoutId="tab-pill" className="tab-pill" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
             <Icon name={t.ic} size={21} stroke={active ? 2.4 : 2} />
             <span className="lb">{t.lb}</span>
           </button>
