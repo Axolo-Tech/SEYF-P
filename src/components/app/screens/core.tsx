@@ -80,8 +80,23 @@ export function StellarAssetAvatar({ code }: { code: string }) {
 export const stellarAssetName = (code: string): string => STELLAR_ASSET_INFO[code]?.name ?? code;
 
 /* ---------------- HOME (patrimonio + balance MXNB en vivo) ---------------- */
+/* "Ocultar saldo" se recuerda en este dispositivo: en el celular se abre la app
+   en público (metro, oficina) y había que volver a ocultarlo cada vez. */
+const HIDE_KEY = "seyf.hideBalance";
+function useHideBalance() {
+  // el Inicio solo se pinta en el cliente (tras la sesión de Pollar), así que se lee al crear el estado
+  const [hide, setHideState] = useState(() => {
+    try { return typeof window !== "undefined" && localStorage.getItem(HIDE_KEY) === "1"; } catch { return false; }
+  });
+  const setHide = (v: boolean) => {
+    setHideState(v);
+    try { localStorage.setItem(HIDE_KEY, v ? "1" : "0"); } catch {}
+  };
+  return [hide, setHide] as const;
+}
+
 export function ScreenHome({ go }: { go: Go }) {
-  const [hide, setHide] = useState(false);
+  const [hide, setHide] = useHideBalance();
   const [modal, setModal] = useState<null | "deposit" | "send" | "more">(null);
   const wallet = useWallet();
   const stellar = useSeyfStellarWallet();
@@ -250,7 +265,11 @@ export function ScreenHome({ go }: { go: Go }) {
             ) : totalSaved > 0 ? (
               <>
                 <div style={{ marginTop: 6 }}>
-                  <GrowingAmount base={savedMxn} apy={weightedApy} size={26} align="left" color="#fff" id="home-alcancia" />
+                  {hide ? (
+                    <p style={{ margin: 0, fontSize: 26, fontWeight: 800, lineHeight: 1, color: "rgba(255,255,255,.7)" }}>••••••</p>
+                  ) : (
+                    <GrowingAmount base={savedMxn} apy={weightedApy} size={26} align="left" color="#fff" id="home-alcancia" />
+                  )}
                 </div>
                 <p className="st-s">Creciendo ahora mismo, segundo a segundo.</p>
               </>
