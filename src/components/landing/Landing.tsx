@@ -25,6 +25,7 @@ import {
 } from "motion/react";
 import Lenis from "lenis";
 import { SeyfSymbol } from "@/components/brand/SeyfLogo";
+import BrandRings from "@/components/brand/BrandRings";
 import { GrowingAmount } from "@/components/app/GrowingAmount";
 import AppMock from "./AppMock";
 import { CountryRelief, type CountryCode } from "./CountryRelief";
@@ -344,6 +345,8 @@ function HeroCinema() {
     <section className="hero-cinema" ref={ref}>
       <div className="hero-sticky">
         {/* --k mueve el símbolo vía CSS (translateX); la escala va en el hijo para no pisar el transform */}
+        {/* anillos del símbolo: se dibujan al cargar y se enlazan con el scroll */}
+        <BrandRings progress={p} className="hero-rings" />
         <motion.div className="hero-sym" style={{ "--k": k, opacity: symO } as unknown as React.CSSProperties}>
           <motion.div className="hero-sym-inner" style={{ scale: symScale }}>
             <div className="hero-sym-glow" />

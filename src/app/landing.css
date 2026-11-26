@@ -162,6 +162,9 @@ html.lenis, html.lenis body { height: auto; }
 }
 .lp .hero-sym-inner { position: absolute; inset: 0; }
 .lp .hero-canvas { position: absolute; inset: 0; }
+.lp .hero-rings { position: absolute; left: 50%; top: 50%; width: min(120vmin, 1100px); aspect-ratio: 344.5 / 396;
+  translate: -50% -60%; z-index: 1; pointer-events: none; will-change: transform, opacity; }
+.lp .hero-rings .ring { transform-box: fill-box; transform-origin: center; }
 .lp .hero-sym-glow { position: absolute; left: 50%; top: 50%; width: 46vmin; height: 46vmin; transform: translate(-50%, -50%);
   border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.9), rgba(200,255,77,.25) 45%, transparent 70%); filter: blur(40px); }
 
@@ -645,6 +648,7 @@ html.lenis, html.lenis body { height: auto; }
   .lp .scroll-hint { display: none; }
   .lp .hero-poster { padding-top: 40px; }
   .lp .poster-word { font-size: clamp(120px, 40vw, 220px); }
+  .lp .hero-rings { width: 128vw; translate: -50% -58%; }
   .lp .poster-lede { font-size: 15px; padding: 0 8px; }
   .lp .hero-cinema .poster-cta { flex-wrap: wrap; justify-content: center; }
 
