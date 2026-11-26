@@ -2,7 +2,7 @@
 
 /* UTONOMA — Tarjeta + Perfil/Seguridad */
 import React, { useState } from "react";
-import { Icon, Flag, Ring } from "../ui";
+import { Icon, Flag } from "../ui";
 import { SubHeader, TxnRow, AvatarButton } from "../shared";
 import { CARD_TXNS, FMT } from "../data";
 import type { Go } from "../nav";
@@ -18,6 +18,7 @@ import { useSeyfStellarWallet } from "@/lib/seyf/use-seyf-stellar-wallet";
 import { WelcomeBonus } from "../WelcomeBonus";
 import { SPEI_ENABLED } from "@/lib/rails";
 import { useHideBalance } from "@/hooks/useHideBalance";
+import { usePollar } from "@pollar/react";
 
 /* Ondas de pago sin contacto */
 function Contactless({ size = 22, color = "var(--txt-muted)" }: { size?: number; color?: string }) {
@@ -161,6 +162,7 @@ function maskClabe(clabe: string) {
 
 export function ScreenProfile({ go }: { go: Go }) {
   const wallet = useWallet();
+  const pollar = usePollar();
   const stellar = useSeyfStellarWallet();
   const kyc = useKycStatus();
   const email = wallet.email || "diego@correo.com";
@@ -317,20 +319,20 @@ export function ScreenProfile({ go }: { go: Go }) {
         </div>
         </>)}
 
-        <div className="card glow" style={{ marginTop: 22, display: "flex", alignItems: "center", gap: 16 }}>
-          <Ring pct={92} size={66} color="var(--accent)" />
-          <div style={{ flex: 1 }}>
-            <p className="eyebrow" style={{ color: "var(--accent)" }}>Nivel de seguridad</p>
-            <p style={{ margin: "6px 0 0", fontWeight: 800, fontSize: 17 }}>Excelente · 92/100</p>
-            <p style={{ margin: "3px 0 0", fontSize: 12, color: "var(--txt-muted)" }}>Activa 1 capa más para llegar al 100%</p>
-          </div>
-        </div>
-
         <p className="eyebrow" style={{ margin: "26px 0 12px" }}>Seguridad</p>
         <div className="card" style={{ padding: 6 }}>
-          <SecRow icon="finger" t="Face ID" right={<Tgl on />} />
-          <SecRow icon="lock" t="PIN de 6 dígitos" right={<Icon name="chevR" size={16} color="var(--txt-dim)" />} />
-          <SecRow icon="shield" t="Verificación en 2 pasos" right={<Tgl on />} />
+          {/* Solo opciones reales: Face ID, PIN y 2 pasos eran interruptores de adorno.
+              La protección de la cuenta es la recuperación de Pollar (passkey o correo). */}
+          <SecRow
+            icon="shield"
+            t="Métodos de recuperación"
+            right={
+              <span className="chip" style={{ pointerEvents: "none", color: pollar.recoveryLocked ? "var(--neg)" : "var(--accent)" }}>
+                {pollar.recoveryLocked ? "Agregar" : "Protegida"}
+              </span>
+            }
+            onClick={pollar.openRecoveryModal}
+          />
           <SecRow icon="eye" t="Ocultar saldos al abrir" right={<HideBalanceSwitch />} last />
         </div>
 
@@ -428,9 +430,4 @@ function HideBalanceSwitch() {
     <button type="button" role="switch" aria-checked={hide} aria-label="Ocultar saldos al abrir"
       className={`tgl ${hide ? "on" : ""}`} onClick={() => setHide(!hide)} />
   );
-}
-
-function Tgl({ on }: { on?: boolean }) {
-  const [v, setV] = useState(!!on);
-  return <div className={`tgl ${v ? "on" : ""}`} onClick={() => setV(!v)} />;
 }
