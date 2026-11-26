@@ -165,8 +165,13 @@ export function TxnRow({ t, go }: { t: Txn; go?: Go }) {
   const pos = t.amt > 0;
   // El tinte explícito gana; si no hay, una entrada se pinta verde y una salida neutra.
   const tint = t.tint ? TINT[t.tint] : pos ? TINT.pos : null;
+  // Con `go` la fila abre el detalle: es un botón (teclado, lector de pantalla y respuesta al toque).
+  const Row = go ? "button" : "div";
   return (
-    <div className="lrow" onClick={() => go && go("txn", t)}>
+    <Row
+      {...(go ? { type: "button" as const, onClick: () => go("txn", t) } : {})}
+      className={go ? "lrow lrow-btn" : "lrow"}
+    >
       <div className="ava" style={tint ? { background: tint.bg, color: tint.color, borderColor: "transparent" } : {}}>
         <Icon name={t.ic} size={20} />
       </div>
@@ -180,6 +185,6 @@ export function TxnRow({ t, go }: { t: Txn; go?: Go }) {
         </div>
         {t.sub && <div className="s num">{t.sub}</div>}
       </div>
-    </div>
+    </Row>
   );
 }
