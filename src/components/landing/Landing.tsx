@@ -311,6 +311,26 @@ function LazyMount({ children, className, margin = "600px" }: { children: React.
   return <div ref={ref} className={className} aria-hidden />;
 }
 
+/** Letra del SEYF gigante: sube al cargar y, con el scroll, se abre hacia su lado
+    (S y E a la izquierda, Y y F a la derecha) para dejar ver los anillos que se enlazan. */
+const LETTER_SPREAD = [-34, -14, 14, 34]; // vw
+const LETTER_TILT = [-8, -4, 4, 8]; // grados
+function PosterLetter({ char, index, progress }: { char: string; index: number; progress: MotionValue<number> }) {
+  const x = useTransform(progress, [0, 0.24], ["0vw", `${LETTER_SPREAD[index]}vw`]);
+  const rotate = useTransform(progress, [0, 0.24], [0, LETTER_TILT[index]]);
+  return (
+    <motion.span className="poster-mask" style={{ x, rotate }} aria-hidden>
+      <motion.span
+        initial={{ y: "110%", rotate: 6 }}
+        animate={{ y: 0, rotate: 0 }}
+        transition={{ duration: 1, delay: 0.2 + index * 0.07, ease: EASE }}
+      >
+        {char}
+      </motion.span>
+    </motion.span>
+  );
+}
+
 /** Hero pinneado: el símbolo 3D gira con el scroll mientras cambian 3 mensajes. */
 function HeroCinema() {
   const { t } = useI18n();
@@ -358,15 +378,7 @@ function HeroCinema() {
         <motion.div className="beat beat-1 hero-poster" style={{ opacity: b1o, y: b1y, scale: b1s }}>
           <h1 className="poster-word" aria-label="SEYF">
             {"SEYF".split("").map((c, i) => (
-              <span className="poster-mask" key={i} aria-hidden>
-                <motion.span
-                  initial={{ y: "110%", rotate: 6 }}
-                  animate={{ y: 0, rotate: 0 }}
-                  transition={{ duration: 1, delay: 0.2 + i * 0.07, ease: EASE }}
-                >
-                  {c}
-                </motion.span>
-              </span>
+              <PosterLetter key={i} char={c} index={i} progress={p} />
             ))}
           </h1>
           <p className="poster-tag display">
