@@ -189,7 +189,7 @@ export function ScreenHome({ go }: { go: Go }) {
             <div style={{ marginTop: 14 }}>
               {/* Número grande = patrimonio (crece a la tasa efectiva). Sin bóveda,
                   es el disponible puro y no crece. Mismo tamaño (56) que Ahorro. */}
-              <GrowingAmount base={hasVault ? patrimonio : pesos} apy={blendedApy} size={62} align="left" id="home-patrimonio" />
+              <GrowingAmount base={hasVault ? patrimonio : pesos} apy={blendedApy} size={heroAmountSize(hasVault ? patrimonio : pesos)} align="left" id="home-patrimonio" />
             </div>
           )}
           {hasVault && !hide && !heroLoading && (
@@ -337,6 +337,15 @@ export function ScreenHome({ go }: { go: Go }) {
       {modal === "more" && <Portal><MoreSheet onClose={() => setModal(null)} /></Portal>}
     </div>
   );
+}
+
+/* Tamaño del saldo grande del Inicio según sus dígitos: a 62 px, un monto de
+   siete cifras ya no cabe en un celular de 360 px y empujaba los centavos fuera. */
+function heroAmountSize(value: number) {
+  const digits = String(Math.floor(Math.abs(value))).length;
+  if (digits <= 6) return 62; // hasta $999,999
+  if (digits <= 9) return 50; // hasta $999,999,999
+  return 40;
 }
 
 /* Operaciones Stellar en la forma que compara `usePendingTxns.reconcile`
