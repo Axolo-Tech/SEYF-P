@@ -16,6 +16,7 @@
     "@pollar/react": "^0.12.0",
     "@privy-io/react-auth": "3.28.0",
     "@soroswap/sdk": "^0.5.0",
+    "@stellar/freighter-api": "6.0.1",
     "@stellar/stellar-sdk": "^14.6.1",
     "@supabase/supabase-js": "2.106.2",
     "canonicalize": "^2.1.0",
