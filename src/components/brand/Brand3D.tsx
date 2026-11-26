@@ -211,21 +211,34 @@ export default function Brand3D({
     ro.observe(host);
 
     // girar con el dedo: solo el arrastre horizontal (touch-action: pan-y deja el scroll)
-    const drag = { on: false, x: 0, vel: 0, rot: 0 };
+    const drag = { on: false, x: 0, vel: 0, rot: 0, moved: 0 };
     const onDown = (e: PointerEvent) => {
       drag.on = true;
       drag.x = e.clientX;
       drag.vel = 0;
+      drag.moved = 0;
       host.setPointerCapture?.(e.pointerId);
     };
     const onMove = (e: PointerEvent) => {
       if (!drag.on) return;
       const dx = e.clientX - drag.x;
       drag.x = e.clientX;
+      drag.moved += Math.abs(dx);
       drag.vel = dx * 0.012;
       drag.rot += drag.vel;
     };
-    const onUp = () => (drag.on = false);
+    // si el objeto está dentro de un botón, girarlo no debe contar como toque
+    const swallowClick = (e: MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+    };
+    const onUp = () => {
+      drag.on = false;
+      if (drag.moved > 6) {
+        host.addEventListener("click", swallowClick, { capture: true, once: true });
+        setTimeout(() => host.removeEventListener("click", swallowClick, { capture: true }), 0);
+      }
+    };
     host.addEventListener("pointerdown", onDown);
     host.addEventListener("pointermove", onMove);
     host.addEventListener("pointerup", onUp);
