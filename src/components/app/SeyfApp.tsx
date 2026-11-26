@@ -18,6 +18,7 @@ import { ScreenLogin } from "./screens/login";
 import { RetiroProvider, useAppRetiro } from "./RetiroContext";
 import { useWallet } from "@/components/wallet/WalletContext";
 import { sep10DeviceNotEnrolled } from "@/lib/stellar/sep10-client";
+import { haptic } from "@/lib/haptics";
 
 const TABS: { id: string; ic: string; lb: string; screen: Screen; match: Screen[] }[] = [
   { id: "inicio", ic: "home", lb: "Inicio", screen: "home", match: ["home", "wallet", "notifs", "txn"] },
@@ -31,7 +32,7 @@ function TabBar({ screen, go }: { screen: Screen; go: Go }) {
       {TABS.map((t) => {
         const active = t.match.includes(screen);
         return (
-          <button key={t.id} className={`tab ${active ? "active" : ""}`} onClick={() => go(t.screen)} aria-current={active ? "page" : undefined} aria-label={t.lb}>
+          <button key={t.id} className={`tab ${active ? "active" : ""}`} onClick={() => { if (!active) haptic(); go(t.screen); }} aria-current={active ? "page" : undefined} aria-label={t.lb}>
             <Icon name={t.ic} size={21} stroke={active ? 2.4 : 2} />
             <span className="lb">{t.lb}</span>
           </button>

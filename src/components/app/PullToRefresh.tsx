@@ -5,6 +5,7 @@
    mueve con estilos directos (sin estado de React) para no volver a pintar la
    pantalla entera en cada movimiento del dedo. Solo responde a toques. */
 import React, { useEffect, useRef, useState } from "react";
+import { haptic } from "@/lib/haptics";
 
 const THRESHOLD = 64;
 const MAX_PULL = 96;
@@ -52,6 +53,7 @@ export function usePullToRefresh(
       startY = null;
       if (pull < THRESHOLD) return paint(0, true);
       busy.current = true;
+      haptic();
       setRefreshing(true);
       paint(THRESHOLD, true);
       try {
