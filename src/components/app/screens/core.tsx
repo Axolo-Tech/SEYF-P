@@ -1,7 +1,7 @@
 "use client";
 
 /* UTONOMA — pantallas core: Onboarding, Home, Wallet (wired a Juno) */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Icon } from "../ui";
 import { TopBar, SubHeader, TxnRow, PendingTxnRow, ConvTxnRow } from "../shared";
 import { TXNS, FMT, txnDecimals, type Txn } from "../data";
@@ -23,6 +23,7 @@ import { Portal } from "../Portal";
 import { ClabeCard } from "../ClabeCard";
 import { ProjectionCard } from "../ProjectionCard";
 import { GrowingAmount } from "../GrowingAmount";
+import { usePullToRefresh, PullIndicator } from "../PullToRefresh";
 import { IntroScreen } from "../IntroScreen";
 import "../onboarding.css";
 import { useSeyfStellarWallet } from "@/lib/seyf/use-seyf-stellar-wallet";
@@ -174,8 +175,19 @@ export function ScreenHome({ go }: { go: Go }) {
   // El adelanto tiene su propia pestaña (vault USDC + `seyf_advance`).
   const onAdvance = () => go("adelanto");
 
+  // jalar para actualizar: vuelve a leer saldos y movimientos de Stellar
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { indicatorRef, refreshing } = usePullToRefresh(scrollRef, () =>
+    Promise.all([
+      stellar.authenticated ? stellar.refreshBalance() : undefined,
+      stellarTxns.refresh(),
+      refreshBal?.(),
+    ]),
+  );
+
   return (
-    <div className="screen screen-enter">
+    <div className="screen screen-enter" ref={scrollRef}>
+      <PullIndicator indicatorRef={indicatorRef} refreshing={refreshing} />
       <div className="safe-top" />
       <TopBar go={go} />
       <div className="screen-pad">

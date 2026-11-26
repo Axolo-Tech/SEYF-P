@@ -427,3 +427,11 @@
 .send-asset button.on { background: #fff; color: #0A0A0F; border-color: #fff; }
 .send-avail { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 12px 0 0; font-size: var(--t-xs); color: var(--txt-dim); }
 .send-avail b { color: var(--txt-muted); }
+
+/* jalar para actualizar (Inicio): el indicador baja con el dedo y gira al soltar */
+.ptr-ind { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 8px); left: 50%; z-index: 5; width: 36px; height: 36px;
+  display: grid; place-items: center; border-radius: 50%; background: var(--glass-2); border: 1px solid var(--glass-line);
+  transform: translate(-50%, -44px); opacity: 0; pointer-events: none; color: var(--accent); }
+.ptr-ind .spin { animation-play-state: paused; }
+.ptr-ind[data-ready="1"] { border-color: var(--accent); }
+.ptr-ind.spinning .spin { animation-play-state: running; }
