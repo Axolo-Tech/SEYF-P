@@ -233,6 +233,12 @@
   .pill-btn:not(.main) svg { display: none; }
 }
 
+/* fila de lista que es botón: accesible con teclado y lector, y responde al toque */
+.lrow-btn { width: 100%; font: inherit; color: inherit; text-align: left; background: none; border-left: 0; border-right: 0; border-top: 0;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; transition: opacity .12s; }
+.lrow-btn:active { opacity: .6; }
+.lrow-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 12px; }
+
 /* hoja de movimientos (como las hojas que suben en las referencias) */
 .sheet-panel {
   margin: 22px -8px 0; padding: 18px 18px 8px; border-radius: 30px;
