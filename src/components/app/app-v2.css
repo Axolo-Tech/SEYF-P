@@ -220,6 +220,15 @@
 .pill-btn:active { transform: scale(.96); }
 .pill-btn.main { background: var(--accent); color: var(--on-accent); border-color: transparent; box-shadow: 0 10px 26px -10px rgba(200,255,77,.7); }
 .pill-btn.icon { flex: none; width: 44px; padding: 0; }
+/* celulares angostos (iPhone SE, 320–360 px): las cuatro acciones caben sin cortar texto */
+@media (max-width: 374px) {
+  .pill-row { gap: 5px; }
+  .pill-btn { gap: 4px; padding: 0 6px; font-size: 12.5px; }
+  .pill-btn.icon { width: 40px; }
+}
+@media (max-width: 339px) {
+  .pill-btn:not(.main) svg { display: none; }
+}
 
 /* hoja de movimientos (como las hojas que suben en las referencias) */
 .sheet-panel {
