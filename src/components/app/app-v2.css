@@ -208,6 +208,9 @@
 
 /* ---------- Inicio: saldo sin caja, acciones en píldora ---------- */
 .home-bal { padding: 6px 2px 4px; }
+/* botón chico con área táctil de 44 px (guía de Apple y WCAG), sin cambiar cómo se ve */
+.hit-44 { position: relative; }
+.hit-44::after { content: ""; position: absolute; inset: 50% auto auto 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); }
 .home-bal .eyebrow { color: rgba(244,242,251,.55); letter-spacing: .1em; }
 .pill-row { display: flex; gap: 6px; margin-top: 18px; }
 .pill-btn {

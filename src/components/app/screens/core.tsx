@@ -166,7 +166,7 @@ export function ScreenHome({ go }: { go: Go }) {
         <div className="home-bal">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <p className="eyebrow">{hasVault ? "Patrimonio total" : "Saldo disponible · MXN"}</p>
-            <button className="icon-btn" style={{ width: 32, height: 32 }} onClick={() => setHide(!hide)} aria-label={hide ? "Mostrar saldo" : "Ocultar saldo"}>
+            <button className="icon-btn hit-44" style={{ width: 32, height: 32 }} onClick={() => setHide(!hide)} aria-label={hide ? "Mostrar saldo" : "Ocultar saldo"} aria-pressed={hide}>
               <Icon name="eye" size={16} color="var(--txt-dim)" />
             </button>
           </div>
