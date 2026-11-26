@@ -386,6 +386,7 @@ button.nudge:focus-visible { outline: 2px solid var(--accent); outline-offset: 2
 }
 .adv-banner .ah-halo { position: absolute; left: 50%; top: 30%; width: 240px; height: 240px; margin: -120px 0 0 -120px; border-radius: 50%;
   pointer-events: none; background: radial-gradient(circle, rgba(236,255,190,.35), transparent 70%); }
+.adv-banner .ah-3d { width: 150px; height: 150px; margin: -22px 0 -22px; }
 .adv-banner .ah-coin { position: relative; display: inline-flex; filter: drop-shadow(0 14px 22px rgba(0,0,0,.35)); }
 .adv-banner .ah-k { position: relative; margin: 10px 0 0; font-size: 11.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.75); }
 .adv-banner .ah-t { position: relative; margin: 8px auto 0; max-width: 290px; font-size: 25px; font-weight: 800; letter-spacing: -.03em; line-height: 1.15; }
@@ -393,7 +394,7 @@ button.nudge:focus-visible { outline: 2px solid var(--accent); outline-offset: 2
 /* celular: héroe más bajo para que el formulario del adelanto se vea sin tanto scroll */
 @media (max-width: 480px) {
   .adv-banner { padding: 16px 18px 18px; border-radius: 26px; }
-  .adv-banner .ah-coin .adv-bolt { width: 56px; height: 56px; }
+  .adv-banner .ah-3d { width: 124px; height: 124px; margin: -16px 0 -16px; }
   .adv-banner .ah-k { margin-top: 4px; }
   .adv-banner .ah-t { font-size: 21px; margin-top: 6px; }
   .adv-banner .ah-s { font-size: 12.5px; margin-top: 6px; }

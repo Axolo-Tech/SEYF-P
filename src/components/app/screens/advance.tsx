@@ -8,11 +8,13 @@ import { motion, useReducedMotion } from "motion/react";
 import { Icon } from "../ui";
 import { AvatarButton } from "../shared";
 import type { Go } from "../nav";
-import { AdvanceBolt } from "../SavingsArt";
 import { Portal } from "../Portal";
 import { DepositModal } from "../modals/DepositModal";
 import { useRetiroCtx } from "../RetiroContext";
 import AdelantoScreen from "@/components/retiro/AdelantoScreen";
+import dynamic from "next/dynamic";
+
+const Brand3D = dynamic(() => import("@/components/brand/Brand3D"), { ssr: false });
 
 export function ScreenAdvance({ go }: { go: Go }) {
   const [deposit, setDeposit] = useState(false);
@@ -47,13 +49,10 @@ export function ScreenAdvance({ go }: { go: Go }) {
             animate={reduced ? undefined : { scale: [1, 1.18, 1], opacity: [0.45, 0.9, 0.45] }}
             transition={reduced ? undefined : { duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
           />
-          <motion.div
-            className="ah-coin"
-            animate={reduced ? undefined : { y: [0, -6, 0] }}
-            transition={reduced ? undefined : { duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <AdvanceBolt size={76} />
-          </motion.div>
+          {/* moneda del rayo en 3D: flota sola y se gira con el dedo */}
+          <div className="ah-coin">
+            <Brand3D kind="bolt" className="ah-3d" />
+          </div>
           <p className="ah-k">Adelanto de rendimiento</p>
           <p className="ah-t">Cobra hoy los intereses de tu ahorro.</p>
           <p className="ah-s">Sin tocar tu capital. Se paga solo con lo que tu ahorro va generando.</p>
