@@ -60,10 +60,14 @@ export function GrowingAmount({
   // opcionalmente desde 0 al montar. El tick en vivo (`grown`) se suma encima.
   const [baseAnim, setBaseAnim] = useState(() => (countUpOnMount && !reduced ? 0 : base));
   const prevBase = useRef<number>(countUpOnMount ? 0 : base);
+  // Último valor pintado: si la animación se corta (cambio de base o el doble
+  // efecto de StrictMode), la siguiente parte de ahí y no se salta el conteo.
+  const shown = useRef<number>(countUpOnMount ? 0 : base);
   useEffect(() => {
     const from = prevBase.current;
     prevBase.current = base;
     if (reduced || from === base) {
+      shown.current = base;
       setBaseAnim(base);
       return;
     }
@@ -72,9 +76,15 @@ export function GrowingAmount({
     const controls = animate(from, base, {
       duration: Math.min(1.2, 0.45 + jump * 0.9),
       ease: [0.22, 1, 0.36, 1],
-      onUpdate: (v) => setBaseAnim(v),
+      onUpdate: (v) => {
+        shown.current = v;
+        setBaseAnim(v);
+      },
     });
-    return () => controls.stop();
+    return () => {
+      controls.stop();
+      if (shown.current !== base) prevBase.current = shown.current;
+    };
   }, [base, reduced]);
   // Inicializa con lo ya acumulado (si el id coincide y el base no cambió) para no
   // reiniciar a cero al volver a montar. El setState solo ocurre dentro del intervalo.
