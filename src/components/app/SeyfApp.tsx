@@ -2,7 +2,7 @@
 
 /* SEYF — shell de la app: router + tab bar (responsivo, sin marco de teléfono).
    Gating por sesión: onboarding → login (Pollar: correo + código) → app. */
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { usePollar } from "@pollar/react";
 import { Icon } from "./ui";
 import type { Go, Screen } from "./nav";
@@ -55,6 +55,26 @@ function Splash() {
           <span className="sp-bar"><i /></span>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* Sin conexión (metro, elevador, mala señal): se avisa arriba en vez de que
+   los saldos y las firmas fallen en silencio. */
+const subscribeOnline = (cb: () => void) => {
+  window.addEventListener("online", cb);
+  window.addEventListener("offline", cb);
+  return () => {
+    window.removeEventListener("online", cb);
+    window.removeEventListener("offline", cb);
+  };
+};
+function OfflineBanner() {
+  const online = useSyncExternalStore(subscribeOnline, () => navigator.onLine, () => true);
+  if (online) return null;
+  return (
+    <div className="offline-bar" role="alert">
+      <Icon name="info" size={15} /> Sin conexión. Tus saldos pueden no estar al día.
     </div>
   );
 }
@@ -192,6 +212,7 @@ export default function SeyfApp() {
           loggingIn ? <ScreenLogin onBack={() => setLoggingIn(false)} /> : <Onboarding onDone={onEnter} />
         ) : (
           <>
+            <OfflineBanner />
             <SessionBanner raised={showTabs} />
             {SCREENS[route.screen] || SCREENS.home}
             {showTabs && <TabBar screen={route.screen} go={go} />}
