@@ -17,7 +17,6 @@ import { DepositModal } from "../modals/DepositModal";
 import { SendModal } from "../modals/SendModal";
 import { MoreSheet } from "../modals/MoreSheet";
 import { OnboardingQuiz } from "../RiskQuiz";
-import { GrowthBars } from "../SavingsArt";
 import { loadRiskProfile, planById } from "../data";
 import { Portal } from "../Portal";
 import { ClabeCard } from "../ClabeCard";
@@ -30,6 +29,9 @@ import "../onboarding.css";
 import { useSeyfStellarWallet } from "@/lib/seyf/use-seyf-stellar-wallet";
 import { stellarTxExplorerUrl as stellarExplorerTxUrl } from "@/lib/etherfuse/stellar-tx-url";
 import { STELLAR_VAULTS_ENABLED, assetSymbolForPlan } from "@/lib/defindex/vaults";
+import dynamic from "next/dynamic";
+
+const Brand3D = dynamic(() => import("@/components/brand/Brand3D"), { ssr: false });
 
 /* ---------------- ONBOARDING ---------------- */
 // Fases: 0 = Hero, 1 = Quiz de perfil (5 preguntas full-screen)
@@ -284,7 +286,8 @@ export function ScreenHome({ go }: { go: Go }) {
               <span className="st-cta">{totalSaved > 0 ? "Ver mi ahorro" : "Empezar a ahorrar"} <Icon name="chevR" size={14} /></span>
             )}
           </div>
-          <GrowthBars size={96} live={!savingsLoading && totalSaved > 0} />
+          {/* moneda SEYF en 3D: flota y se gira con el dedo */}
+          <Brand3D kind="coin" className="teaser-3d" />
         </button>
 
         {/* ── 1c. OTROS ACTIVOS — saldos líquidos (divisas de conversiones + wallet Stellar).
