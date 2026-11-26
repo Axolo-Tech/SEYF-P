@@ -5,7 +5,9 @@ import React, { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { Icon } from "../ui";
 import { Celebration } from "../Celebration";
-import { GrowthBars, VaultDial } from "../SavingsArt";
+import { VaultDial } from "../SavingsArt";
+import dynamic from "next/dynamic";
+
 import { BondPicker, COIN_GRADIENT, CoinSphere, coinKind } from "../BondCoins";
 import { SubHeader, AvatarButton } from "../shared";
 import { IS_MAINNET } from "@/lib/rails";
@@ -28,6 +30,8 @@ import { stellarTxExplorerUrl } from "@/lib/etherfuse/stellar-tx-url";
 import { useSeyfStellarWallet } from "@/lib/seyf/use-seyf-stellar-wallet";
 import { tradableSdexAssets, sdexAssetByCode, type SdexAsset } from "@/lib/sdex/assets";
 import { quoteSdexSwap, executeSdexSwap } from "@/lib/sdex/swap";
+
+const Brand3D = dynamic(() => import("@/components/brand/Brand3D"), { ssr: false });
 
 function fmtApy(apy: number | null | undefined): string {
   return apy != null && Number.isFinite(apy) ? `${FMT(apy, 1)}%` : "—";
@@ -300,7 +304,7 @@ export function ScreenVaults({ go }: { go: Go }) {
         )}
 
         {/* Hero — ahorro total creciendo en vivo */}
-        {/* Héroe sólido: barras de crecimiento animadas. */}
+        {/* Héroe sólido con la bóveda en 3D (flota y se gira con el dedo). */}
         <div className="hero-v2">
           <div className="savings-hero">
             <div style={{ minWidth: 0 }}>
@@ -309,7 +313,7 @@ export function ScreenVaults({ go }: { go: Go }) {
                                 <GrowingAmount base={totalSaved} apy={weightedApy} size={44} align="left" color="#fff" id="vaults-total" anchorMs={totalAnchorMs} />
               </div>
             </div>
-            <GrowthBars size={112} live={totalSaved > 0} />
+            <Brand3D kind="vault" className="savings-3d" />
           </div>
           {totalSaved > 0 ? (
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 14, flexWrap: "wrap" }}>

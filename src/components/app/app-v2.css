@@ -468,3 +468,7 @@ button.nudge:focus-visible { outline: 2px solid var(--accent); outline-offset: 2
 /* interruptor como botón (role="switch"): sin borde ni relleno del navegador */
 button.tgl { border: 0; padding: 0; font: inherit; -webkit-tap-highlight-color: transparent; }
 button.tgl:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* bóveda 3D en el héroe de Ahorro: se sale un poco de la tarjeta, como objeto */
+.savings-3d { width: 132px; height: 132px; flex-shrink: 0; margin: -18px -14px -22px 0; }
+@media (max-width: 374px) { .savings-3d { width: 108px; height: 108px; } }
