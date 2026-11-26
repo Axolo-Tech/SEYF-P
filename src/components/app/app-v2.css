@@ -328,6 +328,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .vcard, .tabbar-v3 .tab, .tabbar-v3 .tab .lb { transition: none; }
+  /* entrada de pantallas y tarjeta de sesión: aparecen sin deslizarse */
+  .screen-enter, .session-card { animation: none; }
+  .ptr-ind, .adv-how > summary svg { transition: none !important; }
 }
 .pill-btn svg { flex-shrink: 0; }
 
