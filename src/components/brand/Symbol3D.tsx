@@ -13,14 +13,14 @@ import type { MotionValue } from "motion/react";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
-const LIME = 0xcdfc4a;
-const VIOLET = 0x8357f5;
+export const LIME = 0xcdfc4a;
+export const VIOLET = 0x8357f5;
 
 // Geometría derivada de public/brand/seyf-symbol.svg (unidades SVG / 100, eje y hacia arriba).
 const R = 0.754;
 const TUBE = 0.2175;
 const ARC = (284 * Math.PI) / 180;
-const ARCS = [
+export const ARCS = [
   { color: VIOLET, cx: 0.218, cy: -0.508, start: (183 * Math.PI) / 180, lift: 1 },
   { color: LIME, cx: -0.218, cy: 0.508, start: (2.96 * Math.PI) / 180, lift: -1 },
 ];
@@ -64,7 +64,7 @@ const easeOutBack = (x: number) => {
   return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
 };
 
-function buildArc(a: (typeof ARCS)[number], mat: THREE.Material, lite = false) {
+export function buildArc(a: (typeof ARCS)[number], mat: THREE.Material, lite = false) {
   const g = new THREE.Group();
   const torus = lite ? new THREE.TorusGeometry(R, TUBE, 32, 140, ARC) : new THREE.TorusGeometry(R, TUBE, 48, 220, ARC);
   torus.rotateZ(a.start);
