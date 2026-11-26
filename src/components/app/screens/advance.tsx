@@ -13,6 +13,7 @@ import { DepositModal } from "../modals/DepositModal";
 import { useRetiroCtx } from "../RetiroContext";
 import AdelantoScreen from "@/components/retiro/AdelantoScreen";
 import dynamic from "next/dynamic";
+import { useTilt } from "@/hooks/useTilt";
 
 const Brand3D = dynamic(() => import("@/components/brand/Brand3D"), { ssr: false });
 
@@ -27,6 +28,7 @@ export function ScreenAdvance({ go }: { go: Go }) {
   );
   const ctx = useRetiroCtx(goTo);
   const reduced = useReducedMotion();
+  const bannerTilt = useTilt<HTMLDivElement>();
 
   return (
     <div className="screen screen-enter">
@@ -42,7 +44,7 @@ export function ScreenAdvance({ go }: { go: Go }) {
       </div>
       <div className="screen-pad">
         {/* Héroe verde, hermano del de la bóveda: halo que respira y la moneda flotando. */}
-        <div className="adv-banner">
+        <div className="adv-banner tilt" ref={bannerTilt}>
           <motion.div
             aria-hidden
             className="ah-halo"

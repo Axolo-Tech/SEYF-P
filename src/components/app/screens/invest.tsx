@@ -30,6 +30,7 @@ import { stellarTxExplorerUrl } from "@/lib/etherfuse/stellar-tx-url";
 import { useSeyfStellarWallet } from "@/lib/seyf/use-seyf-stellar-wallet";
 import { tradableSdexAssets, sdexAssetByCode, type SdexAsset } from "@/lib/sdex/assets";
 import { quoteSdexSwap, executeSdexSwap } from "@/lib/sdex/swap";
+import { useTilt } from "@/hooks/useTilt";
 
 const Brand3D = dynamic(() => import("@/components/brand/Brand3D"), { ssr: false });
 
@@ -186,6 +187,7 @@ function VaultCard({
 
 export function ScreenVaults({ go }: { go: Go }) {
   const wallet = useWallet();
+  const heroTilt = useTilt<HTMLDivElement>();
   const { vaults, addVault, totalSaved, busy, onchain, ready, sessionOk } = useVaultsRail(wallet.address);
   const [createError, setCreateError] = useState<string | null>(null);
   const { strategies, byPlanId } = useDefindexStrategies();
@@ -305,7 +307,7 @@ export function ScreenVaults({ go }: { go: Go }) {
 
         {/* Hero — ahorro total creciendo en vivo */}
         {/* Héroe sólido con la bóveda en 3D (flota y se gira con el dedo). */}
-        <div className="hero-v2">
+        <div className="hero-v2 tilt" ref={heroTilt}>
           <div className="savings-hero">
             <div style={{ minWidth: 0 }}>
               <p className="eyebrow">Tu ahorro total</p>
