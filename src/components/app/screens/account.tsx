@@ -17,6 +17,7 @@ import { RiskProfileSection } from "../RiskQuiz";
 import { useSeyfStellarWallet } from "@/lib/seyf/use-seyf-stellar-wallet";
 import { WelcomeBonus } from "../WelcomeBonus";
 import { SPEI_ENABLED } from "@/lib/rails";
+import { useHideBalance } from "@/hooks/useHideBalance";
 
 /* Ondas de pago sin contacto */
 function Contactless({ size = 22, color = "var(--txt-muted)" }: { size?: number; color?: string }) {
@@ -330,7 +331,7 @@ export function ScreenProfile({ go }: { go: Go }) {
           <SecRow icon="finger" t="Face ID" right={<Tgl on />} />
           <SecRow icon="lock" t="PIN de 6 dígitos" right={<Icon name="chevR" size={16} color="var(--txt-dim)" />} />
           <SecRow icon="shield" t="Verificación en 2 pasos" right={<Tgl on />} />
-          <SecRow icon="eye" t="Ocultar saldos al abrir" right={<Tgl />} last />
+          <SecRow icon="eye" t="Ocultar saldos al abrir" right={<HideBalanceSwitch />} last />
         </div>
 
         <p className="eyebrow" style={{ margin: "26px 0 12px" }}>Tu dinero está protegido</p>
@@ -417,6 +418,15 @@ function SecRow({ icon, t, right, last, danger, onClick }: { icon: string; t: st
       <div style={{ flex: 1, fontWeight: 700, fontSize: 15, color: danger ? "var(--neg)" : "var(--txt)" }}>{t}</div>
       {right}
     </div>
+  );
+}
+
+/* Interruptor real: es la misma preferencia que el ojo del Inicio. */
+function HideBalanceSwitch() {
+  const [hide, setHide] = useHideBalance();
+  return (
+    <button type="button" role="switch" aria-checked={hide} aria-label="Ocultar saldos al abrir"
+      className={`tgl ${hide ? "on" : ""}`} onClick={() => setHide(!hide)} />
   );
 }
 

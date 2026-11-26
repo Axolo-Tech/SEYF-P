@@ -24,6 +24,7 @@ import { ClabeCard } from "../ClabeCard";
 import { ProjectionCard } from "../ProjectionCard";
 import { GrowingAmount } from "../GrowingAmount";
 import { usePullToRefresh, PullIndicator } from "../PullToRefresh";
+import { useHideBalance } from "@/hooks/useHideBalance";
 import { IntroScreen } from "../IntroScreen";
 import "../onboarding.css";
 import { useSeyfStellarWallet } from "@/lib/seyf/use-seyf-stellar-wallet";
@@ -81,21 +82,6 @@ export function StellarAssetAvatar({ code }: { code: string }) {
 export const stellarAssetName = (code: string): string => STELLAR_ASSET_INFO[code]?.name ?? code;
 
 /* ---------------- HOME (patrimonio + balance MXNB en vivo) ---------------- */
-/* "Ocultar saldo" se recuerda en este dispositivo: en el celular se abre la app
-   en público (metro, oficina) y había que volver a ocultarlo cada vez. */
-const HIDE_KEY = "seyf.hideBalance";
-function useHideBalance() {
-  // el Inicio solo se pinta en el cliente (tras la sesión de Pollar), así que se lee al crear el estado
-  const [hide, setHideState] = useState(() => {
-    try { return typeof window !== "undefined" && localStorage.getItem(HIDE_KEY) === "1"; } catch { return false; }
-  });
-  const setHide = (v: boolean) => {
-    setHideState(v);
-    try { localStorage.setItem(HIDE_KEY, v ? "1" : "0"); } catch {}
-  };
-  return [hide, setHide] as const;
-}
-
 const ASSETS_PREVIEW = 3;
 
 export function ScreenHome({ go }: { go: Go }) {
