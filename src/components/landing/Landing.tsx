@@ -32,7 +32,6 @@ import { LangProvider, LangSwitch, useI18n } from "./i18n";
 
 // three.js solo en el navegador y fuera del bundle inicial
 const Symbol3D = dynamic(() => import("@/components/brand/Symbol3D"), { ssr: false });
-const FoamTube = dynamic(() => import("@/components/brand/FoamTube"), { ssr: false });
 const CoinsLayer = dynamic(() => import("./CoinsLayer"), { ssr: false });
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -333,9 +332,8 @@ function HeroCinema() {
   // móvil: el canvas ajusta el símbolo al ancho, así que de entrada se achica para
   // caber entre la barra y el texto sin taparlos
   const symScaleMob = useTransform(p, [0, 0.22, 0.38, 0.6, 0.74], [0.25, 0.25, 0.46, 0.46, 0.6]);
-  // beat 1 lo protagoniza el tubo de espuma; el símbolo aparece cuando el tubo se recoge
+  // beat 1: el símbolo aparece cuando el póster se va
   const symO = useTransform(p, [0, 0.2, 0.32], [0, 0, 1]);
-  const tubeO = useTransform(p, [0, 0.24, 0.32], [1, 1, 0]);
   const mobile = useMediaQuery("(max-width: 880px)");
   const symScale = mobile ? symScaleMob : symScaleDesk;
   const hint = useTransform(p, [0, 0.06], [1, 0]);
@@ -346,10 +344,6 @@ function HeroCinema() {
     <section className="hero-cinema" ref={ref}>
       <div className="hero-sticky">
         {/* --k mueve el símbolo vía CSS (translateX); la escala va en el hijo para no pisar el transform */}
-        {/* tubo de espuma: se dibuja al cargar y se recoge con el scroll */}
-        <motion.div className="hero-tube" style={{ opacity: tubeO }}>
-          <FoamTube progress={p} className="hero-tube-canvas" />
-        </motion.div>
         <motion.div className="hero-sym" style={{ "--k": k, opacity: symO } as unknown as React.CSSProperties}>
           <motion.div className="hero-sym-inner" style={{ scale: symScale }}>
             <div className="hero-sym-glow" />
@@ -357,7 +351,7 @@ function HeroCinema() {
           </motion.div>
         </motion.div>
 
-        {/* Beat 1 — póster: SEYF gigante sobre el tubo de espuma */}
+        {/* Beat 1 — póster: SEYF gigante */}
         <motion.div className="beat beat-1 hero-poster" style={{ opacity: b1o, y: b1y, scale: b1s }}>
           <h1 className="poster-word" aria-label="SEYF">
             {"SEYF".split("").map((c, i) => (

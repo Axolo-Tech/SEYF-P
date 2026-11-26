@@ -161,8 +161,6 @@ html.lenis, html.lenis body { height: auto; }
   will-change: transform;
 }
 .lp .hero-sym-inner { position: absolute; inset: 0; }
-.lp .hero-tube { position: absolute; inset: 0; z-index: 1; pointer-events: none; will-change: opacity; }
-.lp .hero-tube-canvas { position: absolute; inset: -4% 0; }
 .lp .hero-canvas { position: absolute; inset: 0; }
 .lp .hero-sym-glow { position: absolute; left: 50%; top: 50%; width: 46vmin; height: 46vmin; transform: translate(-50%, -50%);
   border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.9), rgba(200,255,77,.25) 45%, transparent 70%); filter: blur(40px); }
@@ -191,7 +189,7 @@ html.lenis, html.lenis body { height: auto; }
 .lp .hero-trust .t { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); font-weight: 600; }
 .lp .hero-trust .t svg { color: var(--accent-ink); }
 
-/* ---------- hero v2: póster (SEYF gigante sobre el tubo de espuma) ---------- */
+/* ---------- hero v2: póster (SEYF gigante) ---------- */
 .lp .hero-poster { position: absolute; inset: 0; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 56px 24px 0; z-index: 2; }
 /* en el póster los botones ya invitan a bajar: sin la pista de scroll encimada */
 .lp .hero-cinema .scroll-hint { display: none; }
