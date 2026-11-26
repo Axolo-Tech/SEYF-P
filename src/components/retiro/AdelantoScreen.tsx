@@ -8,7 +8,7 @@
  */
 import { useEffect, useState } from 'react'
 import { Icon } from '@/components/app/ui'
-import { buildSignSubmit, getAdvanceQuote, type AdvanceQuote } from './api'
+import { buildSignSubmit, getAdvanceQuote, type AdvanceParams, type AdvanceQuote } from './api'
 import { BetaNote, ErrorBox, Row, TxList, useTxRunner } from './parts'
 import ScaleQuote from './ScaleQuote'
 import { DEFAULT_DECIMALS, formatDate, formatUnits, parseUnits, toBigInt, toDate } from './units'
@@ -56,11 +56,19 @@ export default function AdelantoScreen({ ctx }: { ctx: RetiroCtx }) {
       <TxList txs={tx.txs} />
 
       <BetaNote>
-        Beta en {ctx.network === 'mainnet' ? 'mainnet' : 'testnet'} con montos bajos y acceso por invitación. El contrato
-        aún no está auditado. Tú firmas cada operación y SEYF paga la comisión de red.
+        {betaNote(ctx.network, advance.data?.params, decimals)}
       </BetaNote>
     </>
   )
+}
+
+/* El aviso de la beta sale de los parámetros que lee del contrato: decía "acceso
+   por invitación" fijo, y en mainnet la lista se desactivó el 26 de octubre. */
+function betaNote(network: string, params: AdvanceParams | undefined, decimals: number) {
+  const red = network === 'mainnet' ? 'mainnet' : 'testnet'
+  const tope = params?.perUserCap ? ` (hasta ${formatUnits(toBigInt(params.perUserCap), decimals)} USDC por persona)` : ''
+  const invitacion = params?.allowlistOn ? ' y acceso por invitación' : ''
+  return `Beta en ${red} con montos bajos${tope}${invitacion}. El contrato aún no está auditado. Tú firmas cada operación y SEYF paga la comisión de red.`
 }
 
 function QuoteAndOpen({
