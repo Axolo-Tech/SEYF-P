@@ -492,3 +492,20 @@ button.tgl:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px
 .tilt[data-tilting]::after { opacity: 1; }
 .tilt:active { --ts: .985; }
 @media (prefers-reduced-motion: reduce) { .tilt { transform: none; transition: none; } .tilt::after { display: none; } }
+
+/* aurora de marca: dos manchas (violeta arriba, lima abajo) que derivan muy
+   despacio detrás de todo. Solo se anima `transform`, así que es barato en celular. */
+.uto-root.style-expresivo::after {
+  content: ""; position: absolute; inset: -25%; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(34% 26% at 78% 18%, rgba(131,87,245,.30), transparent 70%),
+    radial-gradient(30% 22% at 18% 78%, rgba(200,255,77,.10), transparent 70%),
+    radial-gradient(26% 20% at 30% 30%, rgba(131,87,245,.12), transparent 70%);
+  animation: aurora 22s ease-in-out infinite alternate;
+}
+@keyframes aurora {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  50%  { transform: translate3d(-6%, 4%, 0) rotate(8deg) scale(1.08); }
+  100% { transform: translate3d(5%, -3%, 0) rotate(-6deg) scale(1.02); }
+}
+@media (prefers-reduced-motion: reduce) { .uto-root.style-expresivo::after { animation: none; } }
