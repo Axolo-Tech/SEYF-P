@@ -165,7 +165,8 @@ export function ScreenProfile({ go }: { go: Go }) {
   const pollar = usePollar();
   const stellar = useSeyfStellarWallet();
   const kyc = useKycStatus();
-  const email = wallet.email || "diego@correo.com";
+  // Sin correo en la sesión no se inventa uno: se muestra un texto neutro.
+  const email = wallet.email || "Cuenta SEYF";
   const { list: banks, remove: removeBank, reload: reloadBanks } = useUserBanks(wallet.address);
   const [showAddBank, setShowAddBank] = useState(false);
 
