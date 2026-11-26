@@ -72,6 +72,7 @@ export function ScreenLogin({ onBack }: { onBack: () => void }) {
                 className="input"
                 type="email"
                 autoComplete="email"
+                enterKeyHint="send"
                 placeholder="tu@correo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -88,6 +89,8 @@ export function ScreenLogin({ onBack }: { onBack: () => void }) {
                 className="input num-input"
                 inputMode="numeric"
                 autoComplete="one-time-code"
+                enterKeyHint="done"
+                maxLength={8}
                 placeholder="123456"
                 value={code}
                 disabled={verifying}

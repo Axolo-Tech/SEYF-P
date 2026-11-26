@@ -146,6 +146,9 @@ export function AddBankModal({
         <input
           className="input"
           placeholder="Como aparece en tu banco"
+          autoComplete="name"
+          autoCapitalize="words"
+          enterKeyHint="next"
           value={name}
           onChange={(e) => setName(e.target.value)}
           disabled={status === "sending"}
@@ -158,6 +161,8 @@ export function AddBankModal({
           placeholder="000000000000000000"
           value={clabe}
           inputMode="numeric"
+          autoComplete="off"
+          enterKeyHint="done"
           onChange={(e) => setClabe(e.target.value.replace(/[^\d]/g, "").slice(0, 18))}
           disabled={status === "sending"}
           style={{ letterSpacing: "0.06em" }}

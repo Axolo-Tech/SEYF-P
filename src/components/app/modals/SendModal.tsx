@@ -228,6 +228,9 @@ export function SendModal({
               placeholder="Dirección que empieza con G…"
               value={stAddr}
               autoCapitalize="characters"
+              autoCorrect="off"
+              autoComplete="off"
+              enterKeyHint="next"
               spellCheck={false}
               onChange={(e) => { setStAddr(e.target.value.trim()); setStStatus("idle"); setStError(null); }}
               style={{ fontSize: 13 }}
