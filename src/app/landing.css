@@ -152,21 +152,6 @@ html.lenis, html.lenis body { height: auto; }
 /* ---------- hero cinemático (pinneado) ---------- */
 .lp .hero-cinema { height: 380vh; }
 .lp .hero-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; display: flex; align-items: center; }
-.lp .hero-sym {
-  --sx: 23vw;
-  position: absolute; inset: 0; pointer-events: none;
-  --sy: 0px;
-  /* --k: 1 = posición "junto al texto", 0 = centrado. Desktop se mueve en X; móvil en Y */
-  transform: translate(calc(var(--k, 1) * var(--sx)), calc(var(--k, 1) * var(--sy)));
-  will-change: transform;
-}
-.lp .hero-sym-inner { position: absolute; inset: 0; }
-.lp .hero-canvas { position: absolute; inset: 0; }
-.lp .hero-rings { position: absolute; left: 50%; top: 50%; width: min(120vmin, 1100px); aspect-ratio: 344.5 / 396;
-  translate: -50% -60%; z-index: 1; pointer-events: none; will-change: transform, opacity; }
-.lp .hero-rings .ring { transform-box: fill-box; transform-origin: center; }
-.lp .hero-sym-glow { position: absolute; left: 50%; top: 50%; width: 46vmin; height: 46vmin; transform: translate(-50%, -50%);
-  border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.9), rgba(200,255,77,.25) 45%, transparent 70%); filter: blur(40px); }
 
 .lp .beat { position: absolute; inset: 0; display: flex; align-items: center; }
 .lp .beat-1 { position: relative; inset: auto; width: 100%; z-index: 2; }
@@ -192,23 +177,8 @@ html.lenis, html.lenis body { height: auto; }
 .lp .hero-trust .t { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); font-weight: 600; }
 .lp .hero-trust .t svg { color: var(--accent-ink); }
 
-/* ---------- hero v2: póster (SEYF gigante) ---------- */
-.lp .hero-poster { position: absolute; inset: 0; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 56px 24px 0; z-index: 2; }
 /* en el póster los botones ya invitan a bajar: sin la pista de scroll encimada */
 .lp .hero-cinema .scroll-hint { display: none; }
-.lp .poster-word { display: flex; justify-content: center; margin: 0; font-family: var(--font-poster), Impact, sans-serif; font-weight: 400;
-  font-size: clamp(140px, 26vw, 400px); line-height: .8; letter-spacing: -0.005em; color: var(--ink); text-transform: uppercase;
-  /* sombra como filtro del bloque: con text-shadow cada máscara la recortaba en rectángulos */
-  filter: drop-shadow(0 26px 40px rgba(40,24,110,.18)); }
-.lp .poster-mask { display: inline-block; overflow: hidden; padding: .04em .01em 0; }
-.lp .poster-mask > span { display: inline-block; transform-origin: 0 100%; }
-.lp .poster-tag { text-shadow: 0 0 18px rgba(241,239,252,.9); margin: 22px 0 0; font-size: clamp(26px, 3.3vw, 46px); font-weight: 600; letter-spacing: -0.035em; color: var(--ink); }
-.lp .poster-tag span { display: inline-block; }
-.lp .poster-tag-b { color: var(--accent-2); }
-.lp .poster-lede { margin: 12px auto 0; max-width: 440px; font-size: 16.5px; font-weight: 600; color: var(--ink);
-  /* halo claro: el texto pasa sobre el arco violeta y debe seguir leyéndose */
-  text-shadow: 0 0 14px rgba(241,239,252,.95), 0 0 3px rgba(255,255,255,.9); }
-.lp .poster-cta { justify-content: center; margin-top: 26px; }
 /* botones en píldora estilo póster */
 .lp .btn-pill { border-radius: 999px; padding: 13px 22px; font-size: 14px; letter-spacing: .02em; text-transform: uppercase; font-weight: 800; }
 .lp .btn-ink { background: var(--ink); color: #fff; box-shadow: 0 14px 30px -14px rgba(18,14,36,.7); }
@@ -628,7 +598,6 @@ html.lenis, html.lenis body { height: auto; }
 @media (max-width: 880px) {
   /* hero: símbolo arriba, texto abajo */
   /* móvil: canvas a pantalla completa; el símbolo sube junto al texto y baja al centro en "Rinde 9%" */
-  .lp .hero-sym { --sx: 0px; --sy: -19svh; }
   .lp .hero-sticky { align-items: flex-end; }
   .lp .beat-1 { padding-bottom: max(8vh, 40px); }
   .lp .hero-copy { max-width: none; }
@@ -656,11 +625,6 @@ html.lenis, html.lenis body { height: auto; }
   .lp .beat-2 .float-card .k { font-size: 11px; }
   .lp .beat-2 .float-card .v { font-size: 22px; margin-top: 6px; }
   .lp .scroll-hint { display: none; }
-  .lp .hero-poster { padding-top: 40px; }
-  .lp .poster-word { font-size: clamp(120px, 40vw, 220px); }
-  .lp .hero-rings { width: 128vw; translate: -50% -58%; }
-  .lp .poster-lede { font-size: 15px; padding: 0 8px; }
-  .lp .hero-cinema .poster-cta { flex-wrap: wrap; justify-content: center; }
 
   .lp .story-grid { grid-template-columns: 1fr; gap: 18px; }
   .lp .story-copy .sec-title, .lp .story-copy .sec-tag { display: none; }
