@@ -25,7 +25,6 @@ import {
 } from "motion/react";
 import Lenis from "lenis";
 import { SeyfSymbol } from "@/components/brand/SeyfLogo";
-import BrandRings from "@/components/brand/BrandRings";
 import { GrowingAmount } from "@/components/app/GrowingAmount";
 import AppMock from "./AppMock";
 import { CountryRelief, type CountryCode } from "./CountryRelief";
@@ -33,6 +32,7 @@ import { LangProvider, LangSwitch, useI18n } from "./i18n";
 
 // three.js solo en el navegador y fuera del bundle inicial
 const Symbol3D = dynamic(() => import("@/components/brand/Symbol3D"), { ssr: false });
+const Brand3D = dynamic(() => import("@/components/brand/Brand3D"), { ssr: false });
 const CoinsLayer = dynamic(() => import("./CoinsLayer"), { ssr: false });
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -311,27 +311,53 @@ function LazyMount({ children, className, margin = "600px" }: { children: React.
   return <div ref={ref} className={className} aria-hidden />;
 }
 
-/** Letra del SEYF gigante: sube al cargar y, con el scroll, se abre hacia su lado
-    (S y E a la izquierda, Y y F a la derecha) para dejar ver los anillos que se enlazan. */
-const LETTER_SPREAD = [-34, -14, 14, 34]; // vw
-const LETTER_TILT = [-8, -4, 4, 8]; // grados
-function PosterLetter({ char, index, progress }: { char: string; index: number; progress: MotionValue<number> }) {
-  const x = useTransform(progress, [0, 0.24], ["0vw", `${LETTER_SPREAD[index]}vw`]);
-  const rotate = useTransform(progress, [0, 0.24], [0, LETTER_TILT[index]]);
+/* Objetos 3D del hero (moneda, bóveda y rayo, los mismos de la app). Cada uno
+   viaja entre las tres paradas del scroll con keyframes en vw/vh relativos al
+   centro de la pantalla: [x, y, escala, opacidad] por parada. */
+type Pose = [number, number, number, number];
+type Track = { kind: "coin" | "vault" | "bolt"; size: string; poses: Pose[]; delay: number };
+// paradas: propuesta (0–.22), "Rinde diario" (.38–.6), "Sin letras chiquitas" (.74–1)
+const HERO_STOPS = [0, 0.22, 0.38, 0.6, 0.74, 1];
+const HERO_DESK: Track[] = [
+  { kind: "vault", size: "min(30vw, 470px)", delay: 0.25,
+    poses: [[23, 3, 1, 1], [23, 3, 1, 1], [42, 34, 0.55, 0], [42, 34, 0.55, 0], [24, 2, 1, 1], [24, 2, 1, 1]] },
+  { kind: "coin", size: "min(15vw, 240px)", delay: 0.4,
+    poses: [[9, -25, 1, 1], [9, -25, 1, 1], [0, 0, 1.75, 1], [0, 0, 1.75, 1], [37, -27, 0.85, 1], [37, -27, 0.85, 1]] },
+  { kind: "bolt", size: "min(13vw, 210px)", delay: 0.55,
+    poses: [[38, 25, 1, 1], [38, 25, 1, 1], [48, -32, 0.5, 0], [48, -32, 0.5, 0], [11, 27, 0.95, 1], [11, 27, 0.95, 1]] },
+];
+// móvil: los objetos viven en la mitad de arriba; el texto queda abajo
+const HERO_MOB: Track[] = [
+  { kind: "vault", size: "52vw", delay: 0.25,
+    poses: [[6, -22, 1, 1], [6, -22, 1, 1], [40, -30, 0.5, 0], [40, -30, 0.5, 0], [4, -24, 1, 1], [4, -24, 1, 1]] },
+  { kind: "coin", size: "30vw", delay: 0.4,
+    poses: [[-28, -32, 1, 1], [-28, -32, 1, 1], [0, 0, 1.45, 1], [0, 0, 1.45, 1], [-30, -33, 0.85, 1], [-30, -33, 0.85, 1]] },
+  { kind: "bolt", size: "26vw", delay: 0.55,
+    poses: [[30, -9, 1, 1], [30, -9, 1, 1], [44, -40, 0.5, 0], [44, -40, 0.5, 0], [31, -12, 0.95, 1], [31, -12, 0.95, 1]] },
+];
+
+function HeroObject({ track, progress }: { track: Track; progress: MotionValue<number> }) {
+  const col = (i: number) => track.poses.map((p) => p[i]);
+  const x = useTransform(progress, HERO_STOPS, col(0).map((v) => `${v}vw`));
+  const y = useTransform(progress, HERO_STOPS, col(1).map((v) => `${v}vh`));
+  const scale = useTransform(progress, HERO_STOPS, col(2));
+  const opacity = useTransform(progress, HERO_STOPS, col(3));
   return (
-    <motion.span className="poster-mask" style={{ x, rotate }} aria-hidden>
-      <motion.span
-        initial={{ y: "110%", rotate: 6 }}
-        animate={{ y: 0, rotate: 0 }}
-        transition={{ duration: 1, delay: 0.2 + index * 0.07, ease: EASE }}
+    <motion.div className={`hero-obj hero-obj-${track.kind}`} style={{ x, y, scale, opacity, width: track.size, height: track.size }}>
+      <motion.div
+        className="hero-obj-in"
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1, delay: track.delay, ease: EASE }}
       >
-        {char}
-      </motion.span>
-    </motion.span>
+        <span className="hero-obj-shadow" />
+        <Brand3D kind={track.kind} className="hero-obj-canvas" />
+      </motion.div>
+    </motion.div>
   );
 }
 
-/** Hero pinneado: el símbolo 3D gira con el scroll mientras cambian 3 mensajes. */
+/** Hero pinneado: moneda, bóveda y rayo en 3D se acomodan con el scroll mientras cambian 3 mensajes. */
 function HeroCinema() {
   const { t } = useI18n();
   const ref = useRef<HTMLElement>(null);
@@ -340,69 +366,59 @@ function HeroCinema() {
 
   const b1o = useTransform(p, [0, 0.18, 0.3], [1, 1, 0]);
   const b1y = useTransform(p, [0, 0.3], [0, -60]);
-  const b1s = useTransform(p, [0, 0.3], [1, 1.18]);
   const b2o = useTransform(p, [0.32, 0.37, 0.58, 0.63], [0, 1, 1, 0]);
   const b2s = useTransform(p, [0.32, 0.4], [0.94, 1]);
   const b3o = useTransform(p, [0.66, 0.76, 1], [0, 1, 1]);
   const b3y = useTransform(p, [0.66, 0.78], [60, 0]);
-  // --k: 0 = centrado (detrás de "SEYF" y entre "Rinde" y "diario"), 1 = a la derecha en el beat 3
-  const k = useTransform(p, [0, 0.6, 0.74], [0, 0, 1]);
-  // beat 1: el símbolo es más grande que "SEYF" y se asoma por todos lados (como póster);
-  // en el beat 2 se encoge para caber entre "Rinde" y "diario"
-  const symScaleDesk = useTransform(p, [0, 0.22, 0.38, 0.6, 0.74], [0.3, 0.3, 0.58, 0.58, 0.8]);
-  // móvil: el canvas ajusta el símbolo al ancho, así que de entrada se achica para
-  // caber entre la barra y el texto sin taparlos
-  const symScaleMob = useTransform(p, [0, 0.22, 0.38, 0.6, 0.74], [0.25, 0.25, 0.46, 0.46, 0.6]);
-  // beat 1: el símbolo aparece cuando el póster se va
-  const symO = useTransform(p, [0, 0.2, 0.32], [0, 0, 1]);
   const mobile = useMediaQuery("(max-width: 880px)");
-  const symScale = mobile ? symScaleMob : symScaleDesk;
-  const hint = useTransform(p, [0, 0.06], [1, 0]);
+  const tracks = mobile ? HERO_MOB : HERO_DESK;
   // una parada por mensaje: propuesta, "Rinde diario", "Sin letras chiquitas"
   useSnapSection(ref, [0, 0.48, 0.88]);
 
   return (
     <section className="hero-cinema" ref={ref}>
       <div className="hero-sticky">
-        {/* --k mueve el símbolo vía CSS (translateX); la escala va en el hijo para no pisar el transform */}
-        {/* anillos del símbolo: se dibujan al cargar y se enlazan con el scroll */}
-        <BrandRings progress={p} className="hero-rings" />
-        <motion.div className="hero-sym" style={{ "--k": k, opacity: symO } as unknown as React.CSSProperties}>
-          <motion.div className="hero-sym-inner" style={{ scale: symScale }}>
-            <div className="hero-sym-glow" />
-            <Symbol3D progress={p} className="hero-canvas" intro />
-          </motion.div>
+        <div className="hero-objs" aria-hidden>
+          {tracks.map((tr) => (
+            <HeroObject key={`${mobile ? "m" : "d"}-${tr.kind}`} track={tr} progress={p} />
+          ))}
+        </div>
+
+        {/* Beat 1 — propuesta */}
+        <motion.div className="beat beat-1" style={{ opacity: b1o, y: b1y }}>
+          <div className="wrap">
+            <div className="hero-copy">
+              <motion.p className="hero-eyebrow" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1, ease: EASE }}>
+                <span className="live-dot" /> {t.hero.eyebrow}
+              </motion.p>
+              <h1 className="hero-title display">
+                <span className="hero-word-mask">
+                  <motion.span className="hero-word" initial={{ y: "110%" }} animate={{ y: 0 }} transition={{ duration: 0.9, delay: 0.15, ease: EASE }}>
+                    {t.hero.tagline[0]}
+                  </motion.span>
+                </span>
+                <br />
+                <span className="hero-word-mask">
+                  <motion.span className="hero-word hero-title-b" initial={{ y: "110%" }} animate={{ y: 0 }} transition={{ duration: 0.9, delay: 0.27, ease: EASE }}>
+                    {t.hero.tagline[1]}
+                  </motion.span>
+                </span>
+              </h1>
+              <motion.p className="lede" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.5, ease: EASE }}>
+                {t.hero.lede}
+              </motion.p>
+              <motion.div className="hero-cta" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.62, ease: EASE }}>
+                <Link className="btn btn-ink btn-pill" href="/app">
+                  {t.hero.cta}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M7 17L17 7M9 7h8v8" /></svg>
+                </Link>
+                <a className="btn btn-outline btn-pill" href="#producto">{t.hero.how}</a>
+              </motion.div>
+            </div>
+          </div>
         </motion.div>
 
-        {/* Beat 1 — póster: SEYF gigante */}
-        <motion.div className="beat beat-1 hero-poster" style={{ opacity: b1o, y: b1y, scale: b1s }}>
-          <h1 className="poster-word" aria-label="SEYF">
-            {"SEYF".split("").map((c, i) => (
-              <PosterLetter key={i} char={c} index={i} progress={p} />
-            ))}
-          </h1>
-          <p className="poster-tag display">
-            <motion.span initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.6, ease: EASE }}>
-              {t.hero.tagline[0]}
-            </motion.span>{" "}
-            <motion.span className="poster-tag-b" initial={{ opacity: 0, x: 24, filter: "blur(8px)" }} animate={{ opacity: 1, x: 0, filter: "blur(0px)" }} transition={{ duration: 0.8, delay: 0.95, ease: EASE }}>
-              {t.hero.tagline[1]}
-            </motion.span>
-          </p>
-          <motion.p className="poster-lede" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 1.05, ease: EASE }}>
-            {t.hero.lede}
-          </motion.p>
-          <motion.div className="hero-cta poster-cta" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 1.15, ease: EASE }}>
-            <Link className="btn btn-ink btn-pill" href="/app">
-              {t.hero.cta}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M7 17L17 7M9 7h8v8" /></svg>
-            </Link>
-            <a className="btn btn-outline btn-pill" href="#producto">{t.hero.how}</a>
-          </motion.div>
-
-        </motion.div>
-
-        {/* Beat 2 — rendimiento */}
+        {/* Beat 2 — rendimiento: la moneda llega al hueco entre "Rinde" y "diario" */}
         <motion.div className="beat beat-2" style={{ opacity: b2o, scale: b2s }}>
           <div className="beat-2-row display">
             <span className="big-l">{t.hero.yieldL}</span>
@@ -433,11 +449,6 @@ function HeroCinema() {
             </h2>
             <p className="beat-sub">{t.hero.simpleSub}</p>
           </div>
-        </motion.div>
-
-        <motion.div className="scroll-hint" style={{ opacity: hint }}>
-          <span>{t.hero.scroll}</span>
-          <i />
         </motion.div>
       </div>
     </section>
