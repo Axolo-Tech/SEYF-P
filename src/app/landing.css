@@ -525,7 +525,17 @@ html.lenis, html.lenis body { height: auto; }
 /* ---------- final cta ---------- */
 .lp .final { border: 1px solid var(--line-2); border-radius: 36px; padding: 90px 40px; text-align: center; position: relative; overflow: hidden;
   background: radial-gradient(80% 90% at 50% 110%, rgba(200,255,77,.55), transparent 60%), linear-gradient(160deg, rgba(109,63,240,0.16), rgba(255,255,255,.7)); }
-.lp .final-canvas { position: absolute; inset: 0; opacity: .3; }
+/* moneda, bóveda y rayo alrededor del cierre, como en el hero */
+.lp .final-obj { position: absolute; z-index: 0; }
+.lp .final-obj-vault { width: clamp(150px, 17vw, 250px); height: clamp(150px, 17vw, 250px); right: 3%; bottom: 6%; }
+.lp .final-obj-coin { width: clamp(80px, 7.5vw, 112px); height: clamp(80px, 7.5vw, 112px); left: 2.5%; top: 7%; }
+.lp .final-obj-bolt { width: clamp(90px, 9vw, 150px); height: clamp(90px, 9vw, 150px); left: 9%; bottom: 8%; }
+@media (max-width: 880px) {
+  /* en móvil van arriba del título, con espacio propio */
+  .lp .final-obj-vault { width: 120px; height: 120px; right: auto; left: 50%; margin-left: -20px; bottom: auto; top: 18px; }
+  .lp .final-obj-coin { width: 84px; height: 84px; left: 50%; margin-left: -92px; top: 44px; }
+  .lp .final-obj-bolt { display: none; }
+}
 .lp .final-inner { position: relative; z-index: 1; }
 .lp .final h2 { font-size: clamp(46px, 7vw, 100px); margin: 0 auto; max-width: 900px; }
 .lp .final p { font-size: 19px; color: var(--muted); margin: 20px auto 0; max-width: 520px; }
@@ -699,7 +709,7 @@ html.lenis, html.lenis body { height: auto; }
   .lp .nav-inner { padding: 10px 10px 10px 16px; }
   .lp .nav-cta .btn-ghost { display: none; }
   .lp .foot-grid { grid-template-columns: 1fr; }
-  .lp .final { padding: 64px 22px; border-radius: 28px; }
+  .lp .final { padding: 150px 22px 64px; border-radius: 28px; }
   .lp .ally { min-height: 160px; padding: 22px 18px 18px; }
   .lp .ally-role { font-size: 13px; }
 }

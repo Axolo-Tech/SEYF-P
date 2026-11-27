@@ -31,7 +31,6 @@ import { CountryRelief, type CountryCode } from "./CountryRelief";
 import { LangProvider, LangSwitch, useI18n } from "./i18n";
 
 // three.js solo en el navegador y fuera del bundle inicial
-const Symbol3D = dynamic(() => import("@/components/brand/Symbol3D"), { ssr: false });
 const Brand3D = dynamic(() => import("@/components/brand/Brand3D"), { ssr: false });
 const CoinsLayer = dynamic(() => import("./CoinsLayer"), { ssr: false });
 
@@ -1309,8 +1308,10 @@ function LandingInner() {
         <section className="sec-pad" id="descargar">
           <div className="wrap">
             <Reveal className="final">
-              {/* se monta al acercarse: crear la escena 3D al cargar la página trababa el celular */}
-              <LazyMount className="final-canvas"><Symbol3D className="final-canvas" scale={0.8} /></LazyMount>
+              {/* se montan al acercarse: crear escenas 3D al cargar la página trababa el celular */}
+              <LazyMount className="final-obj final-obj-vault"><Brand3D kind="vault" className="final-obj final-obj-vault" /></LazyMount>
+              <LazyMount className="final-obj final-obj-coin"><Brand3D kind="coin" className="final-obj final-obj-coin" /></LazyMount>
+              <LazyMount className="final-obj final-obj-bolt"><Brand3D kind="bolt" className="final-obj final-obj-bolt" /></LazyMount>
               <div className="final-inner">
                 <h2 className="display">{t.final.title}</h2>
                 <p>{t.final.sub}</p>
