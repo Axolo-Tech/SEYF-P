@@ -314,26 +314,52 @@ function LazyMount({ children, className, margin = "600px" }: { children: React.
    viaja entre las tres paradas del scroll con keyframes en vw/vh relativos al
    centro de la pantalla: [x, y, escala, opacidad] por parada. */
 type Pose = [number, number, number, number];
-type Track = { kind: "coin" | "vault" | "bolt"; size: string; poses: Pose[]; delay: number };
+type Track = { kind: "coin" | "vault" | "bolt" | "phone"; size: string; poses: Pose[]; delay: number };
 // paradas: propuesta (0–.22), "Rinde diario" (.38–.6), "Sin letras chiquitas" (.74–1)
 const HERO_STOPS = [0, 0.22, 0.38, 0.6, 0.74, 1];
+// el celular va primero: los objetos se pintan encima y le dan profundidad
 const HERO_DESK: Track[] = [
-  { kind: "vault", size: "min(30vw, 470px)", delay: 0.25,
-    poses: [[23, 3, 1, 1], [23, 3, 1, 1], [42, 34, 0.55, 0], [42, 34, 0.55, 0], [24, 2, 1, 1], [24, 2, 1, 1]] },
-  { kind: "coin", size: "min(15vw, 240px)", delay: 0.4,
-    poses: [[9, -25, 1, 1], [9, -25, 1, 1], [0, 0, 1.75, 1], [0, 0, 1.75, 1], [37, -27, 0.85, 1], [37, -27, 0.85, 1]] },
-  { kind: "bolt", size: "min(13vw, 210px)", delay: 0.55,
-    poses: [[38, 25, 1, 1], [38, 25, 1, 1], [48, -32, 0.5, 0], [48, -32, 0.5, 0], [11, 27, 0.95, 1], [11, 27, 0.95, 1]] },
+  { kind: "phone", size: "min(21vw, 320px)", delay: 0.2,
+    poses: [[22, 2, 1, 1], [22, 2, 1, 1], [22, 14, 0.9, 0], [22, 14, 0.9, 0], [22, 14, 0.9, 0], [22, 14, 0.9, 0]] },
+  { kind: "vault", size: "min(30vw, 470px)", delay: 0.35,
+    poses: [[9, 22, 0.55, 1], [9, 22, 0.55, 1], [42, 34, 0.55, 0], [42, 34, 0.55, 0], [24, 2, 1, 1], [24, 2, 1, 1]] },
+  { kind: "coin", size: "min(15vw, 240px)", delay: 0.5,
+    poses: [[34, -25, 0.85, 1], [34, -25, 0.85, 1], [0, 0, 1.75, 1], [0, 0, 1.75, 1], [37, -27, 0.85, 1], [37, -27, 0.85, 1]] },
+  { kind: "bolt", size: "min(13vw, 210px)", delay: 0.65,
+    poses: [[35, 22, 0.85, 1], [35, 22, 0.85, 1], [48, -32, 0.5, 0], [48, -32, 0.5, 0], [11, 27, 0.95, 1], [11, 27, 0.95, 1]] },
 ];
-// móvil: los objetos viven en la mitad de arriba; el texto queda abajo
+// móvil: celular y objetos en la mitad de arriba; el texto queda abajo
 const HERO_MOB: Track[] = [
-  { kind: "vault", size: "52vw", delay: 0.25,
-    poses: [[6, -22, 1, 1], [6, -22, 1, 1], [40, -30, 0.5, 0], [40, -30, 0.5, 0], [4, -24, 1, 1], [4, -24, 1, 1]] },
-  { kind: "coin", size: "30vw", delay: 0.4,
-    poses: [[-28, -32, 1, 1], [-28, -32, 1, 1], [0, 0, 1.45, 1], [0, 0, 1.45, 1], [-30, -33, 0.85, 1], [-30, -33, 0.85, 1]] },
-  { kind: "bolt", size: "26vw", delay: 0.55,
-    poses: [[30, -9, 1, 1], [30, -9, 1, 1], [44, -40, 0.5, 0], [44, -40, 0.5, 0], [31, -12, 0.95, 1], [31, -12, 0.95, 1]] },
+  { kind: "phone", size: "calc(41svh * 390 / 844)", delay: 0.2,
+    poses: [[0, -21, 1, 1], [0, -21, 1, 1], [0, -12, 0.9, 0], [0, -12, 0.9, 0], [0, -12, 0.9, 0], [0, -12, 0.9, 0]] },
+  { kind: "vault", size: "52vw", delay: 0.35,
+    poses: [[-29, -8, 0.5, 1], [-29, -8, 0.5, 1], [40, -30, 0.5, 0], [40, -30, 0.5, 0], [4, -24, 1, 1], [4, -24, 1, 1]] },
+  { kind: "coin", size: "30vw", delay: 0.5,
+    poses: [[-30, -35, 0.75, 1], [-30, -35, 0.75, 1], [0, 0, 1.45, 1], [0, 0, 1.45, 1], [-30, -33, 0.85, 1], [-30, -33, 0.85, 1]] },
+  { kind: "bolt", size: "26vw", delay: 0.65,
+    poses: [[31, -12, 0.8, 1], [31, -12, 0.8, 1], [44, -40, 0.5, 0], [44, -40, 0.5, 0], [31, -12, 0.95, 1], [31, -12, 0.95, 1]] },
 ];
+
+/* Celular con el flujo real de la app (grabado de /app en modo demo: saldo,
+   activos y la bóveda de Ahorro). Sin movimiento reducido se queda en el póster. */
+function HeroPhone() {
+  const reduced = useReducedMotion();
+  return (
+    <div className="hero-phone">
+      <video
+        className="hero-phone-screen"
+        src="/landing/app-flow.mp4"
+        poster="/landing/app-flow-poster.jpg"
+        autoPlay={!reduced}
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-label="La app de SEYF: saldo, activos y bóveda de ahorro"
+      />
+    </div>
+  );
+}
 
 function HeroObject({ track, progress }: { track: Track; progress: MotionValue<number> }) {
   const col = (i: number) => track.poses.map((p) => p[i]);
@@ -341,16 +367,26 @@ function HeroObject({ track, progress }: { track: Track; progress: MotionValue<n
   const y = useTransform(progress, HERO_STOPS, col(1).map((v) => `${v}vh`));
   const scale = useTransform(progress, HERO_STOPS, col(2));
   const opacity = useTransform(progress, HERO_STOPS, col(3));
+  const phone = track.kind === "phone";
   return (
-    <motion.div className={`hero-obj hero-obj-${track.kind}`} style={{ x, y, scale, opacity, width: track.size, height: track.size }}>
+    <motion.div
+      className={`hero-obj hero-obj-${track.kind}`}
+      style={{ x, y, scale, opacity, width: track.size, height: phone ? undefined : track.size }}
+    >
       <motion.div
         className="hero-obj-in"
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, delay: track.delay, ease: EASE }}
       >
-        <span className="hero-obj-shadow" />
-        <Brand3D kind={track.kind} className="hero-obj-canvas" />
+        {phone ? (
+          <HeroPhone />
+        ) : (
+          <>
+            <span className="hero-obj-shadow" />
+            <Brand3D kind={track.kind as "coin" | "vault" | "bolt"} className="hero-obj-canvas" />
+          </>
+        )}
       </motion.div>
     </motion.div>
   );

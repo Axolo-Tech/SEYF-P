@@ -760,3 +760,10 @@ html.lenis, html.lenis body { height: auto; }
 }
 .lp .beat-1 > .wrap { width: 100%; }
 
+/* celular del hero con el flujo real de la app */
+.lp .hero-obj-phone { aspect-ratio: 390 / 844; }
+.lp .hero-obj-phone .hero-obj-in { position: relative; inset: auto; width: 100%; height: 100%; }
+.lp .hero-phone { position: relative; width: 100%; height: 100%; padding: 7px; border-radius: 15% / 7%;
+  background: linear-gradient(160deg, #2a2540, #0b0a12 40%, #19162a); box-shadow:
+  0 50px 90px -40px rgba(40,24,110,.55), 0 20px 40px -20px rgba(18,14,36,.5), inset 0 0 0 1.5px rgba(255,255,255,.12); }
+.lp .hero-phone-screen { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 12.5% / 5.8%; background: #0A0A0F; }
