@@ -25,14 +25,13 @@ import {
 } from "motion/react";
 import Lenis from "lenis";
 import { SeyfSymbol } from "@/components/brand/SeyfLogo";
-import BrandRings from "@/components/brand/BrandRings";
 import { GrowingAmount } from "@/components/app/GrowingAmount";
 import AppMock from "./AppMock";
 import { CountryRelief, type CountryCode } from "./CountryRelief";
 import { LangProvider, LangSwitch, useI18n } from "./i18n";
 
 // three.js solo en el navegador y fuera del bundle inicial
-const Symbol3D = dynamic(() => import("@/components/brand/Symbol3D"), { ssr: false });
+const Brand3D = dynamic(() => import("@/components/brand/Brand3D"), { ssr: false });
 const CoinsLayer = dynamic(() => import("./CoinsLayer"), { ssr: false });
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -311,27 +310,89 @@ function LazyMount({ children, className, margin = "600px" }: { children: React.
   return <div ref={ref} className={className} aria-hidden />;
 }
 
-/** Letra del SEYF gigante: sube al cargar y, con el scroll, se abre hacia su lado
-    (S y E a la izquierda, Y y F a la derecha) para dejar ver los anillos que se enlazan. */
-const LETTER_SPREAD = [-34, -14, 14, 34]; // vw
-const LETTER_TILT = [-8, -4, 4, 8]; // grados
-function PosterLetter({ char, index, progress }: { char: string; index: number; progress: MotionValue<number> }) {
-  const x = useTransform(progress, [0, 0.24], ["0vw", `${LETTER_SPREAD[index]}vw`]);
-  const rotate = useTransform(progress, [0, 0.24], [0, LETTER_TILT[index]]);
+/* Objetos 3D del hero (moneda, bóveda y rayo, los mismos de la app). Cada uno
+   viaja entre las tres paradas del scroll con keyframes en vw/vh relativos al
+   centro de la pantalla: [x, y, escala, opacidad] por parada. */
+type Pose = [number, number, number, number];
+type Track = { kind: "coin" | "vault" | "bolt" | "phone"; size: string; poses: Pose[]; delay: number };
+// paradas: propuesta (0–.22), "Rinde diario" (.38–.6), "Sin letras chiquitas" (.74–1)
+const HERO_STOPS = [0, 0.22, 0.38, 0.6, 0.74, 1];
+// el celular va primero: los objetos se pintan encima y le dan profundidad
+const HERO_DESK: Track[] = [
+  { kind: "phone", size: "min(21vw, 320px)", delay: 0.2,
+    poses: [[22, 2, 1, 1], [22, 2, 1, 1], [22, 14, 0.9, 0], [22, 14, 0.9, 0], [22, 14, 0.9, 0], [22, 14, 0.9, 0]] },
+  { kind: "vault", size: "min(30vw, 470px)", delay: 0.35,
+    poses: [[9, 22, 0.55, 1], [9, 22, 0.55, 1], [42, 34, 0.55, 0], [42, 34, 0.55, 0], [24, 2, 1, 1], [24, 2, 1, 1]] },
+  { kind: "coin", size: "min(15vw, 240px)", delay: 0.5,
+    poses: [[34, -25, 0.85, 1], [34, -25, 0.85, 1], [0, 0, 1.75, 1], [0, 0, 1.75, 1], [37, -27, 0.85, 1], [37, -27, 0.85, 1]] },
+  { kind: "bolt", size: "min(13vw, 210px)", delay: 0.65,
+    poses: [[35, 22, 0.85, 1], [35, 22, 0.85, 1], [48, -32, 0.5, 0], [48, -32, 0.5, 0], [11, 27, 0.95, 1], [11, 27, 0.95, 1]] },
+];
+// móvil: celular y objetos en la mitad de arriba; el texto queda abajo
+const HERO_MOB: Track[] = [
+  { kind: "phone", size: "calc(41svh * 390 / 844)", delay: 0.2,
+    poses: [[0, -21, 1, 1], [0, -21, 1, 1], [0, -12, 0.9, 0], [0, -12, 0.9, 0], [0, -12, 0.9, 0], [0, -12, 0.9, 0]] },
+  { kind: "vault", size: "52vw", delay: 0.35,
+    poses: [[-29, -8, 0.5, 1], [-29, -8, 0.5, 1], [40, -30, 0.5, 0], [40, -30, 0.5, 0], [4, -24, 1, 1], [4, -24, 1, 1]] },
+  { kind: "coin", size: "30vw", delay: 0.5,
+    poses: [[-30, -35, 0.75, 1], [-30, -35, 0.75, 1], [0, 0, 1.45, 1], [0, 0, 1.45, 1], [-30, -33, 0.85, 1], [-30, -33, 0.85, 1]] },
+  { kind: "bolt", size: "26vw", delay: 0.65,
+    poses: [[31, -12, 0.8, 1], [31, -12, 0.8, 1], [44, -40, 0.5, 0], [44, -40, 0.5, 0], [31, -12, 0.95, 1], [31, -12, 0.95, 1]] },
+];
+
+/* Celular con el flujo real de la app (grabado de /app en modo demo: saldo,
+   activos y la bóveda de Ahorro). Sin movimiento reducido se queda en el póster. */
+function HeroPhone() {
+  const reduced = useReducedMotion();
   return (
-    <motion.span className="poster-mask" style={{ x, rotate }} aria-hidden>
-      <motion.span
-        initial={{ y: "110%", rotate: 6 }}
-        animate={{ y: 0, rotate: 0 }}
-        transition={{ duration: 1, delay: 0.2 + index * 0.07, ease: EASE }}
-      >
-        {char}
-      </motion.span>
-    </motion.span>
+    <div className="hero-phone">
+      <video
+        className="hero-phone-screen"
+        src="/landing/app-flow.mp4"
+        poster="/landing/app-flow-poster.jpg"
+        autoPlay={!reduced}
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-label="La app de SEYF: saldo, activos y bóveda de ahorro"
+      />
+    </div>
   );
 }
 
-/** Hero pinneado: el símbolo 3D gira con el scroll mientras cambian 3 mensajes. */
+function HeroObject({ track, progress }: { track: Track; progress: MotionValue<number> }) {
+  const col = (i: number) => track.poses.map((p) => p[i]);
+  const x = useTransform(progress, HERO_STOPS, col(0).map((v) => `${v}vw`));
+  const y = useTransform(progress, HERO_STOPS, col(1).map((v) => `${v}vh`));
+  const scale = useTransform(progress, HERO_STOPS, col(2));
+  const opacity = useTransform(progress, HERO_STOPS, col(3));
+  const phone = track.kind === "phone";
+  return (
+    <motion.div
+      className={`hero-obj hero-obj-${track.kind}`}
+      style={{ x, y, scale, opacity, width: track.size, height: phone ? undefined : track.size }}
+    >
+      <motion.div
+        className="hero-obj-in"
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1, delay: track.delay, ease: EASE }}
+      >
+        {phone ? (
+          <HeroPhone />
+        ) : (
+          <>
+            <span className="hero-obj-shadow" />
+            <Brand3D kind={track.kind as "coin" | "vault" | "bolt"} className="hero-obj-canvas" />
+          </>
+        )}
+      </motion.div>
+    </motion.div>
+  );
+}
+
+/** Hero pinneado: moneda, bóveda y rayo en 3D se acomodan con el scroll mientras cambian 3 mensajes. */
 function HeroCinema() {
   const { t } = useI18n();
   const ref = useRef<HTMLElement>(null);
@@ -340,69 +401,59 @@ function HeroCinema() {
 
   const b1o = useTransform(p, [0, 0.18, 0.3], [1, 1, 0]);
   const b1y = useTransform(p, [0, 0.3], [0, -60]);
-  const b1s = useTransform(p, [0, 0.3], [1, 1.18]);
   const b2o = useTransform(p, [0.32, 0.37, 0.58, 0.63], [0, 1, 1, 0]);
   const b2s = useTransform(p, [0.32, 0.4], [0.94, 1]);
   const b3o = useTransform(p, [0.66, 0.76, 1], [0, 1, 1]);
   const b3y = useTransform(p, [0.66, 0.78], [60, 0]);
-  // --k: 0 = centrado (detrás de "SEYF" y entre "Rinde" y "diario"), 1 = a la derecha en el beat 3
-  const k = useTransform(p, [0, 0.6, 0.74], [0, 0, 1]);
-  // beat 1: el símbolo es más grande que "SEYF" y se asoma por todos lados (como póster);
-  // en el beat 2 se encoge para caber entre "Rinde" y "diario"
-  const symScaleDesk = useTransform(p, [0, 0.22, 0.38, 0.6, 0.74], [0.3, 0.3, 0.58, 0.58, 0.8]);
-  // móvil: el canvas ajusta el símbolo al ancho, así que de entrada se achica para
-  // caber entre la barra y el texto sin taparlos
-  const symScaleMob = useTransform(p, [0, 0.22, 0.38, 0.6, 0.74], [0.25, 0.25, 0.46, 0.46, 0.6]);
-  // beat 1: el símbolo aparece cuando el póster se va
-  const symO = useTransform(p, [0, 0.2, 0.32], [0, 0, 1]);
   const mobile = useMediaQuery("(max-width: 880px)");
-  const symScale = mobile ? symScaleMob : symScaleDesk;
-  const hint = useTransform(p, [0, 0.06], [1, 0]);
+  const tracks = mobile ? HERO_MOB : HERO_DESK;
   // una parada por mensaje: propuesta, "Rinde diario", "Sin letras chiquitas"
   useSnapSection(ref, [0, 0.48, 0.88]);
 
   return (
     <section className="hero-cinema" ref={ref}>
       <div className="hero-sticky">
-        {/* --k mueve el símbolo vía CSS (translateX); la escala va en el hijo para no pisar el transform */}
-        {/* anillos del símbolo: se dibujan al cargar y se enlazan con el scroll */}
-        <BrandRings progress={p} className="hero-rings" />
-        <motion.div className="hero-sym" style={{ "--k": k, opacity: symO } as unknown as React.CSSProperties}>
-          <motion.div className="hero-sym-inner" style={{ scale: symScale }}>
-            <div className="hero-sym-glow" />
-            <Symbol3D progress={p} className="hero-canvas" intro />
-          </motion.div>
+        <div className="hero-objs" aria-hidden>
+          {tracks.map((tr) => (
+            <HeroObject key={`${mobile ? "m" : "d"}-${tr.kind}`} track={tr} progress={p} />
+          ))}
+        </div>
+
+        {/* Beat 1 — propuesta */}
+        <motion.div className="beat beat-1" style={{ opacity: b1o, y: b1y }}>
+          <div className="wrap">
+            <div className="hero-copy">
+              <motion.p className="hero-eyebrow" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1, ease: EASE }}>
+                <span className="live-dot" /> {t.hero.eyebrow}
+              </motion.p>
+              <h1 className="hero-title display">
+                <span className="hero-word-mask">
+                  <motion.span className="hero-word" initial={{ y: "110%" }} animate={{ y: 0 }} transition={{ duration: 0.9, delay: 0.15, ease: EASE }}>
+                    {t.hero.tagline[0]}
+                  </motion.span>
+                </span>
+                <br />
+                <span className="hero-word-mask">
+                  <motion.span className="hero-word hero-title-b" initial={{ y: "110%" }} animate={{ y: 0 }} transition={{ duration: 0.9, delay: 0.27, ease: EASE }}>
+                    {t.hero.tagline[1]}
+                  </motion.span>
+                </span>
+              </h1>
+              <motion.p className="lede" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.5, ease: EASE }}>
+                {t.hero.lede}
+              </motion.p>
+              <motion.div className="hero-cta" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.62, ease: EASE }}>
+                <Link className="btn btn-ink btn-pill" href="/app">
+                  {t.hero.cta}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M7 17L17 7M9 7h8v8" /></svg>
+                </Link>
+                <a className="btn btn-outline btn-pill" href="#producto">{t.hero.how}</a>
+              </motion.div>
+            </div>
+          </div>
         </motion.div>
 
-        {/* Beat 1 — póster: SEYF gigante */}
-        <motion.div className="beat beat-1 hero-poster" style={{ opacity: b1o, y: b1y, scale: b1s }}>
-          <h1 className="poster-word" aria-label="SEYF">
-            {"SEYF".split("").map((c, i) => (
-              <PosterLetter key={i} char={c} index={i} progress={p} />
-            ))}
-          </h1>
-          <p className="poster-tag display">
-            <motion.span initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.6, ease: EASE }}>
-              {t.hero.tagline[0]}
-            </motion.span>{" "}
-            <motion.span className="poster-tag-b" initial={{ opacity: 0, x: 24, filter: "blur(8px)" }} animate={{ opacity: 1, x: 0, filter: "blur(0px)" }} transition={{ duration: 0.8, delay: 0.95, ease: EASE }}>
-              {t.hero.tagline[1]}
-            </motion.span>
-          </p>
-          <motion.p className="poster-lede" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 1.05, ease: EASE }}>
-            {t.hero.lede}
-          </motion.p>
-          <motion.div className="hero-cta poster-cta" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 1.15, ease: EASE }}>
-            <Link className="btn btn-ink btn-pill" href="/app">
-              {t.hero.cta}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M7 17L17 7M9 7h8v8" /></svg>
-            </Link>
-            <a className="btn btn-outline btn-pill" href="#producto">{t.hero.how}</a>
-          </motion.div>
-
-        </motion.div>
-
-        {/* Beat 2 — rendimiento */}
+        {/* Beat 2 — rendimiento: la moneda llega al hueco entre "Rinde" y "diario" */}
         <motion.div className="beat beat-2" style={{ opacity: b2o, scale: b2s }}>
           <div className="beat-2-row display">
             <span className="big-l">{t.hero.yieldL}</span>
@@ -434,11 +485,98 @@ function HeroCinema() {
             <p className="beat-sub">{t.hero.simpleSub}</p>
           </div>
         </motion.div>
+      </div>
+    </section>
+  );
+}
 
-        <motion.div className="scroll-hint" style={{ opacity: hint }}>
-          <span>{t.hero.scroll}</span>
-          <i />
-        </motion.div>
+/* Reel cinematográfico (estilo anuncio): 5 escenas 3D generadas con el kit de
+   marca, fijas al scroll. Cada escena entra con zoom y fundido. Cuando haya clips de
+   video por escena, van en `REEL[i].video` y reemplazan a la imagen. */
+const REEL: { img: string; video?: string }[] = [
+  { img: "/landing/reel/escena-1-moneda-celular.jpg" },
+  { img: "/landing/reel/escena-2-macro-emblema.jpg" },
+  { img: "/landing/reel/escena-3-boveda-abierta.jpg" },
+  { img: "/landing/reel/escena-5-moneda-rayo.jpg" },
+  { img: "/landing/reel/escena-6-trio-celular.jpg" },
+];
+
+function reelWindow(i: number, n: number) {
+  const seg = 1 / n;
+  const a = i * seg;
+  const b = (i + 1) * seg;
+  const f = seg * 0.22;
+  if (i === 0) return { inp: [0, b - f, b], out: [1, 1, 0], a, b, f };
+  if (i === n - 1) return { inp: [a - f, a, 1], out: [0, 1, 1], a, b, f };
+  return { inp: [a - f, a, b - f, b], out: [0, 1, 1, 0], a, b, f };
+}
+
+function ReelMedia({ i, progress }: { i: number; progress: MotionValue<number> }) {
+  const n = REEL.length;
+  const w = reelWindow(i, n);
+  const opacity = useTransform(progress, w.inp, w.out);
+  const scale = useTransform(progress, [w.a - w.f, w.b], [1.16, 1]);
+  const sc = REEL[i];
+  return (
+    <motion.div className="reel-media" style={{ opacity }}>
+      <motion.div className="reel-media-in" style={{ scale }}>
+        {sc.video ? (
+          <video src={sc.video} poster={sc.img} autoPlay muted loop playsInline preload="metadata" />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element -- fondo animado; next/image no aporta aquí
+          <img src={sc.img} alt="" loading={i < 2 ? "eager" : "lazy"} decoding="async" />
+        )}
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function ReelCopy({ i, progress, t, s }: { i: number; progress: MotionValue<number>; t: string; s: string }) {
+  const n = REEL.length;
+  const w = reelWindow(i, n);
+  const opacity = useTransform(progress, w.inp, w.out);
+  const y = useTransform(progress, [w.a - w.f, w.a + w.f * 0.6], [46, 0]);
+  return (
+    <motion.div className="reel-copy" style={{ opacity, y }}>
+      <h3 className="reel-t">{t}</h3>
+      <p className="reel-s">{s}</p>
+    </motion.div>
+  );
+}
+
+function FilmReel() {
+  const { t } = useI18n();
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const p = useSpring(scrollYProgress, { stiffness: 140, damping: 32, mass: 0.4 });
+  const n = REEL.length;
+  const bar = useTransform(p, [0, 1], ["0%", "100%"]);
+  const [idx, setIdx] = useState(1);
+  useMotionValueEvent(p, "change", (v) => setIdx(Math.min(n, Math.floor(v * n) + 1)));
+  // una parada por escena
+  useSnapSection(ref, REEL.map((_, i) => (i === 0 ? 0 : i === n - 1 ? 1 : (i + 0.4) / n)));
+  return (
+    <section className="reel" ref={ref} style={{ height: `${n * 100}vh` }} aria-label={t.reel.tag}>
+      <div className="reel-sticky">
+        <div className="wrap reel-grid">
+          <div className="reel-side">
+            <p className="reel-tag"><span className="live-dot" /> {t.reel.tag}</p>
+            <div className="reel-copies">
+              {t.reel.items.slice(0, n).map((it, i) => (
+                <ReelCopy key={i} i={i} progress={p} t={it.t} s={it.s} />
+              ))}
+            </div>
+            <div className="reel-meter">
+              <span className="num">{String(idx).padStart(2, "0")} / {String(n).padStart(2, "0")}</span>
+              <span className="reel-bar"><motion.i style={{ width: bar }} /></span>
+            </div>
+          </div>
+          <div className="reel-frame">
+            {REEL.map((_, i) => (
+              <ReelMedia key={i} i={i} progress={p} />
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -1201,6 +1339,7 @@ function LandingInner() {
         </VelocityMarquee>
 
         <Manifesto />
+        <FilmReel />
 
         <Sheet tone="white">
         <PhoneStory />
@@ -1297,8 +1436,10 @@ function LandingInner() {
         <section className="sec-pad" id="descargar">
           <div className="wrap">
             <Reveal className="final">
-              {/* se monta al acercarse: crear la escena 3D al cargar la página trababa el celular */}
-              <LazyMount className="final-canvas"><Symbol3D className="final-canvas" scale={0.8} /></LazyMount>
+              {/* se montan al acercarse: crear escenas 3D al cargar la página trababa el celular */}
+              <LazyMount className="final-obj final-obj-vault"><Brand3D kind="vault" className="final-obj final-obj-vault" /></LazyMount>
+              <LazyMount className="final-obj final-obj-coin"><Brand3D kind="coin" className="final-obj final-obj-coin" /></LazyMount>
+              <LazyMount className="final-obj final-obj-bolt"><Brand3D kind="bolt" className="final-obj final-obj-bolt" /></LazyMount>
               <div className="final-inner">
                 <h2 className="display">{t.final.title}</h2>
                 <p>{t.final.sub}</p>
