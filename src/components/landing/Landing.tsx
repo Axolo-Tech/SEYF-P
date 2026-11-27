@@ -490,6 +490,103 @@ function HeroCinema() {
   );
 }
 
+/* Reel cinematográfico (estilo anuncio): 6 escenas 3D generadas con el kit de
+   marca, fijas al scroll. Cada escena entra con zoom y fundido; la última es
+   oscura y el fondo de la sección pasa a tinta con ella. Cuando haya clips de
+   video por escena, van en `REEL[i].video` y reemplazan a la imagen. */
+const REEL: { img: string; video?: string; dark?: boolean }[] = [
+  { img: "/landing/reel/escena-1-moneda-celular.jpg" },
+  { img: "/landing/reel/escena-2-macro-emblema.jpg" },
+  { img: "/landing/reel/escena-3-boveda-abierta.jpg" },
+  { img: "/landing/reel/escena-5-moneda-rayo.jpg" },
+  { img: "/landing/reel/escena-6-trio-celular.jpg" },
+  { img: "/landing/reel/escena-4-destello-oscuro.jpg", dark: true },
+];
+
+function reelWindow(i: number, n: number) {
+  const seg = 1 / n;
+  const a = i * seg;
+  const b = (i + 1) * seg;
+  const f = seg * 0.22;
+  if (i === 0) return { inp: [0, b - f, b], out: [1, 1, 0], a, b, f };
+  if (i === n - 1) return { inp: [a - f, a, 1], out: [0, 1, 1], a, b, f };
+  return { inp: [a - f, a, b - f, b], out: [0, 1, 1, 0], a, b, f };
+}
+
+function ReelMedia({ i, progress }: { i: number; progress: MotionValue<number> }) {
+  const n = REEL.length;
+  const w = reelWindow(i, n);
+  const opacity = useTransform(progress, w.inp, w.out);
+  const scale = useTransform(progress, [w.a - w.f, w.b], [1.16, 1]);
+  const sc = REEL[i];
+  return (
+    <motion.div className="reel-media" style={{ opacity }}>
+      <motion.div className="reel-media-in" style={{ scale }}>
+        {sc.video ? (
+          <video src={sc.video} poster={sc.img} autoPlay muted loop playsInline preload="metadata" />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element -- fondo animado; next/image no aporta aquí
+          <img src={sc.img} alt="" loading={i < 2 ? "eager" : "lazy"} decoding="async" />
+        )}
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function ReelCopy({ i, progress, t, s }: { i: number; progress: MotionValue<number>; t: string; s: string }) {
+  const n = REEL.length;
+  const w = reelWindow(i, n);
+  const opacity = useTransform(progress, w.inp, w.out);
+  const y = useTransform(progress, [w.a - w.f, w.a + w.f * 0.6], [46, 0]);
+  return (
+    <motion.div className={`reel-copy${REEL[i].dark ? " dark" : ""}`} style={{ opacity, y }}>
+      <h3 className="reel-t">{t}</h3>
+      <p className="reel-s">{s}</p>
+    </motion.div>
+  );
+}
+
+function FilmReel() {
+  const { t } = useI18n();
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const p = useSpring(scrollYProgress, { stiffness: 140, damping: 32, mass: 0.4 });
+  const n = REEL.length;
+  const darkFrom = (n - 1) / n;
+  const bg = useTransform(p, [darkFrom - 0.05, darkFrom], ["#F1EFFC", "#120E24"]);
+  const ink = useTransform(p, [darkFrom - 0.05, darkFrom], ["#120E24", "#F1EFFC"]);
+  const bar = useTransform(p, [0, 1], ["0%", "100%"]);
+  const [idx, setIdx] = useState(1);
+  useMotionValueEvent(p, "change", (v) => setIdx(Math.min(n, Math.floor(v * n) + 1)));
+  // una parada por escena
+  useSnapSection(ref, REEL.map((_, i) => (i === 0 ? 0 : i === n - 1 ? 1 : (i + 0.4) / n)));
+  return (
+    <section className="reel" ref={ref} style={{ height: `${n * 100}vh` }} aria-label={t.reel.tag}>
+      <motion.div className="reel-sticky" style={{ background: bg, color: ink }}>
+        <div className="wrap reel-grid">
+          <div className="reel-side">
+            <p className="reel-tag"><span className="live-dot" /> {t.reel.tag}</p>
+            <div className="reel-copies">
+              {t.reel.items.map((it, i) => (
+                <ReelCopy key={i} i={i} progress={p} t={it.t} s={it.s} />
+              ))}
+            </div>
+            <div className="reel-meter">
+              <span className="num">{String(idx).padStart(2, "0")} / {String(n).padStart(2, "0")}</span>
+              <span className="reel-bar"><motion.i style={{ width: bar }} /></span>
+            </div>
+          </div>
+          <div className="reel-frame">
+            {REEL.map((_, i) => (
+              <ReelMedia key={i} i={i} progress={p} />
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </section>
+  );
+}
+
 /** "Acomodo" en una sección pinneada: el scroll es libre (nunca se bloquea); al
     detenerse dentro de la sección, se desliza a la parada siguiente en la dirección
     en que ibas (o a la anterior si subías). Pasando la última/primera parada no
@@ -1248,6 +1345,7 @@ function LandingInner() {
         </VelocityMarquee>
 
         <Manifesto />
+        <FilmReel />
 
         <Sheet tone="white">
         <PhoneStory />
