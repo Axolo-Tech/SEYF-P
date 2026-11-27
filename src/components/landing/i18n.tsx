@@ -36,6 +36,17 @@ const es = {
   manifestoTag: "Por qué SEYF",
   manifesto:
     "Tu dinero parado pierde contra la inflación todos los días. SEYF pone a trabajar cada peso: rinde diario, se mueve en segundos y sale cuando tú decides. Sin trucos ni sorpresas.",
+  reel: {
+    tag: "SEYF en movimiento",
+    items: [
+      { t: "Empieza a rendir desde el primer día.", s: "Cada peso que entra se pone a trabajar." },
+      { t: "Siempre tuyo.", s: "Tu dinero se mueve en segundos y siempre es tuyo." },
+      { t: "Una bóveda para cada meta.", s: "Crea bóvedas, ve cómo crecen y retira cuando quieras." },
+      { t: "Cobra hoy tus intereses.", s: "Adelanto de rendimiento, sin tocar tu capital." },
+      { t: "Todo en una sola app.", s: "Ahorro, bóvedas y adelanto, en pesos." },
+      { t: "Construido sobre Stellar.", s: "Rápido, abierto y sin comisiones escondidas." },
+    ],
+  },
   story: {
     tag: "Así funciona",
     title: "Tres pasos. Así de fácil.",
@@ -196,6 +207,17 @@ const en: Dict = {
   manifestoTag: "Why SEYF",
   manifesto:
     "Idle money loses to inflation every single day. SEYF puts every peso to work: it earns daily, moves in seconds and comes out whenever you decide. No tricks, no surprises.",
+  reel: {
+    tag: "SEYF in motion",
+    items: [
+      { t: "Start earning from day one.", s: "Every peso you add goes to work." },
+      { t: "Always yours.", s: "Your money moves in seconds and is always yours." },
+      { t: "A vault for every goal.", s: "Create vaults, watch them grow and withdraw anytime." },
+      { t: "Get your interest today.", s: "Yield advance, without touching your savings." },
+      { t: "Everything in one app.", s: "Savings, vaults and advances, in pesos." },
+      { t: "Built on Stellar.", s: "Fast, open and with no hidden fees." },
+    ],
+  },
   story: {
     tag: "How it works",
     title: "Three steps. That easy.",
@@ -354,6 +376,17 @@ const pt: Dict = {
   manifestoTag: "Por que SEYF",
   manifesto:
     "Dinheiro parado perde para a inflação todos os dias. A SEYF coloca cada peso para trabalhar: rende todo dia, se move em segundos e sai quando você decide. Sem truques, sem surpresas.",
+  reel: {
+    tag: "SEYF em movimento",
+    items: [
+      { t: "Comece a render desde o primeiro dia.", s: "Cada peso que entra começa a trabalhar." },
+      { t: "Sempre seu.", s: "Seu dinheiro se move em segundos e é sempre seu." },
+      { t: "Um cofre para cada meta.", s: "Crie cofres, veja crescerem e resgate quando quiser." },
+      { t: "Receba hoje seus juros.", s: "Adiantamento de rendimento, sem tocar no seu capital." },
+      { t: "Tudo em um só app.", s: "Poupança, cofres e adiantamento, em pesos." },
+      { t: "Construído sobre a Stellar.", s: "Rápido, aberto e sem taxas escondidas." },
+    ],
+  },
   story: {
     tag: "Como funciona",
     title: "Três passos. Simples assim.",
