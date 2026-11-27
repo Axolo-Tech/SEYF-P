@@ -44,7 +44,6 @@ const es = {
       { t: "Una bóveda para cada meta.", s: "Crea bóvedas, ve cómo crecen y retira cuando quieras." },
       { t: "Cobra hoy tus intereses.", s: "Adelanto de rendimiento, sin tocar tu capital." },
       { t: "Todo en una sola app.", s: "Ahorro, bóvedas y adelanto, en pesos." },
-      { t: "Construido sobre Stellar.", s: "Rápido, abierto y sin comisiones escondidas." },
     ],
   },
   story: {
@@ -215,7 +214,6 @@ const en: Dict = {
       { t: "A vault for every goal.", s: "Create vaults, watch them grow and withdraw anytime." },
       { t: "Get your interest today.", s: "Yield advance, without touching your savings." },
       { t: "Everything in one app.", s: "Savings, vaults and advances, in pesos." },
-      { t: "Built on Stellar.", s: "Fast, open and with no hidden fees." },
     ],
   },
   story: {
@@ -384,7 +382,6 @@ const pt: Dict = {
       { t: "Um cofre para cada meta.", s: "Crie cofres, veja crescerem e resgate quando quiser." },
       { t: "Receba hoje seus juros.", s: "Adiantamento de rendimento, sem tocar no seu capital." },
       { t: "Tudo em um só app.", s: "Poupança, cofres e adiantamento, em pesos." },
-      { t: "Construído sobre a Stellar.", s: "Rápido, aberto e sem taxas escondidas." },
     ],
   },
   story: {

@@ -490,17 +490,15 @@ function HeroCinema() {
   );
 }
 
-/* Reel cinematográfico (estilo anuncio): 6 escenas 3D generadas con el kit de
-   marca, fijas al scroll. Cada escena entra con zoom y fundido; la última es
-   oscura y el fondo de la sección pasa a tinta con ella. Cuando haya clips de
+/* Reel cinematográfico (estilo anuncio): 5 escenas 3D generadas con el kit de
+   marca, fijas al scroll. Cada escena entra con zoom y fundido. Cuando haya clips de
    video por escena, van en `REEL[i].video` y reemplazan a la imagen. */
-const REEL: { img: string; video?: string; dark?: boolean }[] = [
+const REEL: { img: string; video?: string }[] = [
   { img: "/landing/reel/escena-1-moneda-celular.jpg" },
   { img: "/landing/reel/escena-2-macro-emblema.jpg" },
   { img: "/landing/reel/escena-3-boveda-abierta.jpg" },
   { img: "/landing/reel/escena-5-moneda-rayo.jpg" },
   { img: "/landing/reel/escena-6-trio-celular.jpg" },
-  { img: "/landing/reel/escena-4-destello-oscuro.jpg", dark: true },
 ];
 
 function reelWindow(i: number, n: number) {
@@ -539,7 +537,7 @@ function ReelCopy({ i, progress, t, s }: { i: number; progress: MotionValue<numb
   const opacity = useTransform(progress, w.inp, w.out);
   const y = useTransform(progress, [w.a - w.f, w.a + w.f * 0.6], [46, 0]);
   return (
-    <motion.div className={`reel-copy${REEL[i].dark ? " dark" : ""}`} style={{ opacity, y }}>
+    <motion.div className="reel-copy" style={{ opacity, y }}>
       <h3 className="reel-t">{t}</h3>
       <p className="reel-s">{s}</p>
     </motion.div>
@@ -552,9 +550,6 @@ function FilmReel() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const p = useSpring(scrollYProgress, { stiffness: 140, damping: 32, mass: 0.4 });
   const n = REEL.length;
-  const darkFrom = (n - 1) / n;
-  const bg = useTransform(p, [darkFrom - 0.05, darkFrom], ["#F1EFFC", "#120E24"]);
-  const ink = useTransform(p, [darkFrom - 0.05, darkFrom], ["#120E24", "#F1EFFC"]);
   const bar = useTransform(p, [0, 1], ["0%", "100%"]);
   const [idx, setIdx] = useState(1);
   useMotionValueEvent(p, "change", (v) => setIdx(Math.min(n, Math.floor(v * n) + 1)));
@@ -562,12 +557,12 @@ function FilmReel() {
   useSnapSection(ref, REEL.map((_, i) => (i === 0 ? 0 : i === n - 1 ? 1 : (i + 0.4) / n)));
   return (
     <section className="reel" ref={ref} style={{ height: `${n * 100}vh` }} aria-label={t.reel.tag}>
-      <motion.div className="reel-sticky" style={{ background: bg, color: ink }}>
+      <div className="reel-sticky">
         <div className="wrap reel-grid">
           <div className="reel-side">
             <p className="reel-tag"><span className="live-dot" /> {t.reel.tag}</p>
             <div className="reel-copies">
-              {t.reel.items.map((it, i) => (
+              {t.reel.items.slice(0, n).map((it, i) => (
                 <ReelCopy key={i} i={i} progress={p} t={it.t} s={it.s} />
               ))}
             </div>
@@ -582,7 +577,7 @@ function FilmReel() {
             ))}
           </div>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }
